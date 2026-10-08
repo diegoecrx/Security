@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>API Automation with Python</title>
+<style>
+  :root{
+    --ink:#15181d; --ink2:#3d434d; --muted:#6b7280;
+    --line:#e4e7eb; --rule:#cfd4da; --surface:#ffffff; --plane:#f6f7f9;
+    --accent:#1f4e79; --accent2:#2d6ca8;
+    --note:#1f4e79; --caution:#9a6a00; --warn-bg:#fbf4e6;
+    --code-bg:#1b1f26; --code-ink:#e6e9ee; --ok:#1a7f37; --bad:#c0392b;
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-print-color-adjust:exact; print-color-adjust:exact;}
+  body{margin:0; color:var(--ink); background:var(--plane); font-family:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif; font-size:10.4pt; line-height:1.52;}
+  .doc{max-width:200mm; margin:0 auto; background:var(--surface); padding:0 18mm 16mm; box-shadow:0 1px 16px rgba(0,0,0,.06);}
+  @media screen{ body{padding:8mm 0;} }
+  @page{ size:A4; margin:18mm 16mm; }
+  @media print{ .doc{max-width:none; margin:0; padding:0; box-shadow:none;} }
+  h1,h2,h3{font-weight:600; color:var(--ink); line-height:1.25;}
+  h2{font-size:14.5pt; margin:9mm 0 2.5mm; padding-top:2mm; color:var(--accent); border-top:2px solid var(--accent);}
+  h2 .n{color:var(--accent2); font-weight:700; margin-right:2mm;}
+  h3{font-size:11.2pt; margin:5mm 0 1.5mm; color:var(--ink);}
+  p{margin:0 0 2.6mm;} a{color:var(--accent2); text-decoration:none;}
+  ul,ol{margin:0 0 2.8mm; padding-left:5.5mm;} li{margin:0 0 1.1mm;}
+  strong{font-weight:600;} code{font-family:"Cascadia Code",Consolas,monospace; font-size:9pt; background:#eef1f4; padding:.2mm 1.2mm; border-radius:2px;}
+  .lede{font-size:10.6pt; color:var(--ink2);}
+  header.title{border-bottom:3px solid var(--accent); padding:14mm 0 6mm; margin-bottom:2mm;}
+  header.title .cat{font-size:8.5pt; letter-spacing:.18em; text-transform:uppercase; color:var(--accent2); font-weight:700;}
+  header.title h1{font-size:25pt; margin:3mm 0 2mm; letter-spacing:-.3pt; color:var(--ink);}
+  header.title .scope{font-size:11pt; color:var(--ink2); max-width:155mm;}
+  header.title .meta{margin-top:5mm; font-size:8.6pt; color:var(--muted); display:flex; gap:7mm; flex-wrap:wrap;}
+  header.title .meta b{color:var(--ink2); font-weight:600;}
+  .toc{background:var(--plane); border:1px solid var(--line); border-radius:4px; padding:4mm 6mm; margin:5mm 0 2mm; columns:2; column-gap:10mm; font-size:9.3pt;}
+  .toc a{display:block; color:var(--ink2); padding:.8mm 0; break-inside:avoid;}
+  .toc a .n{color:var(--accent2); font-weight:600; display:inline-block; width:6mm;}
+  table{width:100%; border-collapse:collapse; font-size:9.1pt; margin:2.5mm 0 4mm;}
+  caption{caption-side:top; text-align:left; font-size:8.6pt; color:var(--muted); margin-bottom:1.5mm; font-style:italic;}
+  th,td{text-align:left; padding:2.1mm 2.6mm; border:1px solid var(--line); vertical-align:top;}
+  thead th{background:var(--accent); color:#fff; font-weight:600; font-size:8.5pt; letter-spacing:.02em; border-color:var(--accent);}
+  tbody tr:nth-child(even){background:var(--plane);}
+  td code, th code{background:#eef1f4;}
+  pre{background:var(--code-bg); color:var(--code-ink); border-radius:4px; padding:4mm 5mm; font-family:"Cascadia Code",Consolas,monospace; font-size:8.6pt; line-height:1.5; margin:2.5mm 0; white-space:pre-wrap; word-break:break-word;}
+  pre .c{color:#8b94a3;} pre .k{color:#7cc5ff;} pre .s{color:#9ee493;} pre .f{color:#f0c674;} pre .n2{color:#79c0ff;} pre .bad{color:#ff8f8f;} pre .ok{color:#8ce39a;}
+  .note{border-left:3px solid var(--note); background:#eef3f9; padding:3mm 4mm; margin:3mm 0; font-size:9.6pt; border-radius:0 3px 3px 0;}
+  .note.caution{border-color:var(--caution); background:var(--warn-bg);}
+  .note .lab{font-weight:700; color:var(--note); text-transform:uppercase; font-size:8pt; letter-spacing:.06em; margin-right:1.5mm;}
+  .note.caution .lab{color:var(--caution);}
+  .cols{display:grid; grid-template-columns:1fr 1fr; gap:6mm;}
+  .ref{font-size:9pt;} .ref li{margin-bottom:1.6mm;}
+  footer{margin-top:9mm; padding-top:3mm; border-top:1px solid var(--line); font-size:8.2pt; color:var(--muted);}
+  h2{break-after:avoid;} table,pre,.note{break-inside:avoid;}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<header class="title">
+  <div class="cat">Developer Reference &middot; Automation</div>
+  <h1>API Automation with Python</h1>
+  <div class="scope">Programmatic interaction with HTTP APIs: requests, authentication, JSON, regular expressions, file handling and automation patterns, applied to the GitHub REST API. Uses Python 3 and the <code>requests</code> library.</div>
+  <div class="meta"><span><b>Language</b> Python 3</span><span><b>Core library</b> requests</span><span><b>Reference API</b> GitHub REST API</span></div>
+</header>
+
+<nav class="toc">
+  <a href="#s1"><span class="n">1</span>HTTP &amp; REST fundamentals</a>
+  <a href="#s2"><span class="n">2</span>Requests</a>
+  <a href="#s3"><span class="n">3</span>Authentication</a>
+  <a href="#s4"><span class="n">4</span>JSON</a>
+  <a href="#s5"><span class="n">5</span>Regular expressions</a>
+  <a href="#s6"><span class="n">6</span>File handling</a>
+  <a href="#s7"><span class="n">7</span>Automation patterns</a>
+  <a href="#s8"><span class="n">8</span>Worked example: GitHub API</a>
+  <a href="#s9"><span class="n">9</span>Best practices</a>
+  <a href="#s10"><span class="n">10</span>Tooling</a>
+  <a href="#s11"><span class="n">11</span>Terminology &amp; references</a>
+</nav>
+
+<h2 id="s1"><span class="n">1</span>HTTP &amp; REST fundamentals</h2>
+<p>An HTTP API exposes resources at URLs (endpoints). A client sends a <strong>request</strong> (method, URL, headers, optional query parameters and body); the server returns a <strong>response</strong> (status code, headers, body &mdash; typically JSON).</p>
+<div class="cols">
+  <div>
+    <table>
+      <caption>Methods</caption>
+      <thead><tr><th style="width:36%">Method</th><th>Semantics</th></tr></thead>
+      <tbody>
+        <tr><td><code>GET</code></td><td>Read (safe, no change)</td></tr>
+        <tr><td><code>POST</code></td><td>Create</td></tr>
+        <tr><td><code>PUT</code> / <code>PATCH</code></td><td>Replace / modify</td></tr>
+        <tr><td><code>DELETE</code></td><td>Remove</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div>
+    <table>
+      <caption>Status code classes</caption>
+      <thead><tr><th style="width:24%">Range</th><th>Meaning</th></tr></thead>
+      <tbody>
+        <tr><td><code>2xx</code></td><td>Success (200, 201, 204)</td></tr>
+        <tr><td><code>3xx</code></td><td>Redirect (301, 304)</td></tr>
+        <tr><td><code>4xx</code></td><td>Client error (400, 401, 403, 404, 429)</td></tr>
+        <tr><td><code>5xx</code></td><td>Server error (500, 503)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<h2 id="s2"><span class="n">2</span>Requests</h2>
+<p>The <code>requests</code> library (<code>pip install requests</code>) covers the common cases. Always set a <code>timeout</code>; check the status.</p>
+<pre><span class="k">import</span> requests
+
+<span class="c"># GET with query parameters and headers</span>
+resp = requests.<span class="f">get</span>(
+    <span class="s">"https://api.github.com/users/torvalds/repos"</span>,
+    params={<span class="s">"per_page"</span>: <span class="n2">100</span>, <span class="s">"sort"</span>: <span class="s">"updated"</span>},
+    headers={<span class="s">"Accept"</span>: <span class="s">"application/vnd.github+json"</span>},
+    timeout=<span class="n2">10</span>,
+)
+resp.<span class="f">raise_for_status</span>()        <span class="c"># raise on 4xx/5xx</span>
+data = resp.<span class="f">json</span>()             <span class="c"># parse JSON body</span>
+
+<span class="c"># POST with a JSON body</span>
+requests.<span class="f">post</span>(url, json={<span class="s">"name"</span>: <span class="s">"item"</span>}, timeout=<span class="n2">10</span>)   <span class="c"># json= sets body + Content-Type</span></pre>
+<p>For many requests to one API, use a <strong>session</strong> (<code>requests.Session()</code>) with shared headers &mdash; it reuses the connection and centralizes auth.</p>
+
+<h2 id="s3"><span class="n">3</span>Authentication</h2>
+<table>
+  <thead><tr><th style="width:24%">Scheme</th><th>Representation</th></tr></thead>
+  <tbody>
+    <tr><td>API key</td><td>Header or query parameter: <code>X-API-Key: &lt;key&gt;</code></td></tr>
+    <tr><td>Bearer token</td><td><code>Authorization: Bearer &lt;token&gt;</code></td></tr>
+    <tr><td>Basic</td><td><code>requests.get(url, auth=(user, password))</code></td></tr>
+    <tr><td>OAuth 2.0</td><td>Delegated user access; see the OAuth/OIDC/JWT reference</td></tr>
+  </tbody>
+</table>
+<pre><span class="k">import</span> os
+token = os.<span class="f">environ</span>[<span class="s">"GITHUB_TOKEN"</span>]        <span class="c"># read from environment, never hardcode</span>
+headers = {<span class="s">"Authorization"</span>: <span class="s">f"Bearer {token}"</span>}</pre>
+<div class="note caution"><span class="lab">Caution</span>Never hardcode credentials in source. Read them from environment variables or a secrets manager. A token committed to a repository is detected and abused rapidly (see the Secret Scanning reference).</div>
+
+<h2 id="s4"><span class="n">4</span>JSON</h2>
+<p>JSON maps directly to Python types: object&rarr;<code>dict</code>, array&rarr;<code>list</code>, <code>true/false/null</code>&rarr;<code>True/False/None</code>.</p>
+<pre><span class="k">import</span> json
+
+data = requests.<span class="f">get</span>(url).<span class="f">json</span>()       <span class="c"># response body &rarr; dict/list</span>
+data = json.<span class="f">loads</span>(text)              <span class="c"># string &rarr; object</span>
+text = json.<span class="f">dumps</span>(data, indent=<span class="n2">2</span>)     <span class="c"># object &rarr; string</span>
+
+value = data.<span class="f">get</span>(<span class="s">"key"</span>)             <span class="c"># None if absent (vs. data["key"] &rarr; KeyError)</span></pre>
+<p>Use <code>.get()</code> for fields that may be absent. <code>loads</code>/<code>dumps</code> operate on strings; <code>load</code>/<code>dump</code> operate on file objects.</p>
+
+<h2 id="s5"><span class="n">5</span>Regular expressions</h2>
+<p>The <code>re</code> module extracts and validates structured text. Use raw strings (<code>r"..."</code>) for patterns.</p>
+<pre><span class="k">import</span> re
+
+re.<span class="f">findall</span>(<span class="s">r"[\w.]+@[\w.]+"</span>, text)   <span class="c"># all matches &rarr; list</span>
+m = re.<span class="f">search</span>(<span class="s">r"v(\d+)\.(\d+)\.(\d+)"</span>, s)  <span class="c"># first match (or None)</span>
+<span class="k">if</span> m: major, minor, patch = m.<span class="f">groups</span>()   <span class="c"># capture groups</span>
+re.<span class="f">sub</span>(<span class="s">r"@\w+"</span>, <span class="s">"@REDACTED"</span>, text)      <span class="c"># replace</span></pre>
+<table>
+  <thead><tr><th style="width:18%">Token</th><th>Matches</th><th style="width:18%">Token</th><th>Matches</th></tr></thead>
+  <tbody>
+    <tr><td><code>\d</code></td><td>digit</td><td><code>+</code></td><td>one or more</td></tr>
+    <tr><td><code>\w</code></td><td>word char</td><td><code>*</code></td><td>zero or more</td></tr>
+    <tr><td><code>\s</code></td><td>whitespace</td><td><code>?</code></td><td>optional</td></tr>
+    <tr><td><code>.</code></td><td>any char</td><td><code>[...]</code></td><td>character set</td></tr>
+    <tr><td><code>()</code></td><td>capture group</td><td><code>^ $</code></td><td>start / end</td></tr>
+  </tbody>
+</table>
+<div class="note"><span class="lab">Note</span>Use regex for flat, predictable text (identifiers, dates, versions). Do not parse HTML or JSON with regex &mdash; use a dedicated parser or <code>.json()</code>.</div>
+
+<h2 id="s6"><span class="n">6</span>File handling</h2>
+<p>Use the <code>with</code> statement (auto-closes on exit, including on error) and specify <code>encoding</code>.</p>
+<pre><span class="k">import</span> json, csv
+<span class="k">from</span> pathlib <span class="k">import</span> Path
+
+<span class="c"># text: mode "w" overwrites, "a" appends</span>
+<span class="k">with</span> <span class="f">open</span>(<span class="s">"report.txt"</span>, <span class="s">"w"</span>, encoding=<span class="s">"utf-8"</span>) <span class="k">as</span> f:
+    f.<span class="f">write</span>(<span class="s">"line\n"</span>)
+
+<span class="c"># JSON to a file (load/dump take a file object)</span>
+<span class="k">with</span> <span class="f">open</span>(<span class="s">"data.json"</span>, <span class="s">"w"</span>, encoding=<span class="s">"utf-8"</span>) <span class="k">as</span> f:
+    json.<span class="f">dump</span>(data, f, indent=<span class="n2">2</span>)
+
+<span class="c"># CSV (opens in spreadsheet tools)</span>
+<span class="k">with</span> <span class="f">open</span>(<span class="s">"out.csv"</span>, <span class="s">"w"</span>, newline=<span class="s">""</span>, encoding=<span class="s">"utf-8"</span>) <span class="k">as</span> f:
+    w = csv.<span class="f">DictWriter</span>(f, fieldnames=[<span class="s">"name"</span>, <span class="s">"stars"</span>])
+    w.<span class="f">writeheader</span>(); w.<span class="f">writerows</span>(rows)
+
+path = Path(<span class="s">"output"</span>) / <span class="s">"out.csv"</span>    <span class="c"># cross-platform path join</span></pre>
+
+<h2 id="s7"><span class="n">7</span>Automation patterns</h2>
+<h3>Pagination</h3>
+<p>APIs return results in pages. Iterate until an empty page:</p>
+<pre>items, page = [], <span class="n2">1</span>
+<span class="k">while</span> <span class="k">True</span>:
+    batch = session.<span class="f">get</span>(url, params={<span class="s">"per_page"</span>: <span class="n2">100</span>, <span class="s">"page"</span>: page}, timeout=<span class="n2">10</span>).<span class="f">json</span>()
+    <span class="k">if</span> <span class="k">not</span> batch: <span class="k">break</span>
+    items.<span class="f">extend</span>(batch); page += <span class="n2">1</span></pre>
+<h3>Rate limiting &amp; retry with backoff</h3>
+<pre><span class="k">import</span> time
+<span class="k">for</span> attempt <span class="k">in</span> <span class="f">range</span>(<span class="n2">3</span>):
+    resp = session.<span class="f">get</span>(url, timeout=<span class="n2">10</span>)
+    <span class="k">if</span> resp.status_code <span class="k">not in</span> (<span class="n2">429</span>, <span class="n2">403</span>): <span class="k">break</span>
+    time.<span class="f">sleep</span>(<span class="n2">2</span> ** attempt)       <span class="c"># exponential backoff: 1s, 2s, 4s</span></pre>
+<p><strong>Scheduling:</strong> cron (Linux/macOS), Task Scheduler (Windows), or a scheduled CI job (e.g. GitHub Actions). A robust script reads config from the environment, handles errors explicitly (timeout, status, missing fields), logs its actions, and is safe to re-run.</p>
+
+<h2 id="s8"><span class="n">8</span>Worked example: GitHub API</h2>
+<table>
+  <thead><tr><th style="width:28%">Property</th><th>Value</th></tr></thead>
+  <tbody>
+    <tr><td>Base URL</td><td><code>https://api.github.com</code></td></tr>
+    <tr><td>Auth</td><td>Personal access token &mdash; <code>Authorization: Bearer &lt;token&gt;</code></td></tr>
+    <tr><td>Headers</td><td><code>Accept: application/vnd.github+json</code>; <code>X-GitHub-Api-Version: 2022-11-28</code></td></tr>
+    <tr><td>Rate limit</td><td>5,000 req/hour authenticated (60 unauthenticated)</td></tr>
+    <tr><td>Pagination</td><td><code>?per_page=100&amp;page=N</code></td></tr>
+  </tbody>
+</table>
+<pre><span class="c">"""Fetch a user's repositories, filter by name, write CSV."""</span>
+<span class="k">import</span> os, re, csv, time, sys, requests
+
+TOKEN = os.<span class="f">environ</span>.<span class="f">get</span>(<span class="s">"GITHUB_TOKEN"</span>)
+<span class="k">if</span> <span class="k">not</span> TOKEN: sys.<span class="f">exit</span>(<span class="s">"Set GITHUB_TOKEN"</span>)
+USER = <span class="s">"torvalds"</span>
+
+session = requests.<span class="f">Session</span>()
+session.headers.<span class="f">update</span>({
+    <span class="s">"Authorization"</span>: <span class="s">f"Bearer {TOKEN}"</span>,
+    <span class="s">"Accept"</span>: <span class="s">"application/vnd.github+json"</span>,
+    <span class="s">"X-GitHub-Api-Version"</span>: <span class="s">"2022-11-28"</span>,
+})
+
+<span class="k">def</span> <span class="f">get_all_repos</span>(user):
+    repos, page = [], <span class="n2">1</span>
+    <span class="k">while</span> <span class="k">True</span>:
+        url = <span class="s">f"https://api.github.com/users/{user}/repos"</span>
+        <span class="k">for</span> attempt <span class="k">in</span> <span class="f">range</span>(<span class="n2">3</span>):
+            r = session.<span class="f">get</span>(url, params={<span class="s">"per_page"</span>: <span class="n2">100</span>, <span class="s">"page"</span>: page}, timeout=<span class="n2">10</span>)
+            <span class="k">if</span> r.status_code != <span class="n2">403</span>: <span class="k">break</span>
+            time.<span class="f">sleep</span>(<span class="n2">2</span> ** attempt)
+        r.<span class="f">raise_for_status</span>()
+        batch = r.<span class="f">json</span>()
+        <span class="k">if</span> <span class="k">not</span> batch: <span class="k">break</span>
+        repos.<span class="f">extend</span>(batch); page += <span class="n2">1</span>
+    <span class="k">return</span> repos
+
+rows = []
+<span class="k">for</span> repo <span class="k">in</span> <span class="f">get_all_repos</span>(USER):
+    <span class="k">if</span> re.<span class="f">search</span>(<span class="s">r"(?i)linux|kernel"</span>, repo[<span class="s">"name"</span>]):
+        rows.<span class="f">append</span>({
+            <span class="s">"name"</span>: repo[<span class="s">"name"</span>],
+            <span class="s">"stars"</span>: repo[<span class="s">"stargazers_count"</span>],
+            <span class="s">"language"</span>: repo.<span class="f">get</span>(<span class="s">"language"</span>) <span class="k">or</span> <span class="s">"?"</span>,
+            <span class="s">"url"</span>: repo[<span class="s">"html_url"</span>],
+        })
+
+<span class="k">with</span> <span class="f">open</span>(<span class="s">"repos.csv"</span>, <span class="s">"w"</span>, newline=<span class="s">""</span>, encoding=<span class="s">"utf-8"</span>) <span class="k">as</span> f:
+    w = csv.<span class="f">DictWriter</span>(f, fieldnames=[<span class="s">"name"</span>, <span class="s">"stars"</span>, <span class="s">"language"</span>, <span class="s">"url"</span>])
+    w.<span class="f">writeheader</span>(); w.<span class="f">writerows</span>(rows)</pre>
+<p>The script applies every element above: environment-based auth, a session, paginated retrieval with backoff retry, JSON parsing with safe field access, a regex filter, and CSV output.</p>
+
+<h2 id="s9"><span class="n">9</span>Best practices</h2>
+<ul>
+  <li>Read credentials from the environment or a secrets manager; never commit them.</li>
+  <li>Set a <code>timeout</code> on every request; check status (<code>raise_for_status()</code>).</li>
+  <li>Respect rate limits; retry transient failures with exponential backoff.</li>
+  <li>Paginate; do not assume a single response contains all results.</li>
+  <li>Use <code>.get()</code> for optional JSON fields; validate response shape against real data.</li>
+  <li>Test against a small sample before iterating over a full dataset.</li>
+  <li>Identify the client (<code>User-Agent</code>); observe the API's terms and documented limits.</li>
+</ul>
+
+<h2 id="s10"><span class="n">10</span>Tooling</h2>
+<table>
+  <thead><tr><th style="width:30%">Category</th><th>Tools</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Exploration</strong></td><td>curl, HTTPie, Postman / Insomnia / Bruno, jq, regex101.com</td></tr>
+    <tr><td><strong>Python libraries</strong></td><td>requests, httpx (async); built-in json / csv / re / pathlib; python-dotenv; pandas; PyGithub</td></tr>
+    <tr><td><strong>Scheduling</strong></td><td>cron, Windows Task Scheduler, GitHub Actions (scheduled), serverless functions</td></tr>
+  </tbody>
+</table>
+
+<h2 id="s11"><span class="n">11</span>Terminology &amp; references</h2>
+<div class="cols">
+  <div>
+    <h3>Terminology</h3>
+    <ul style="font-size:9.3pt;">
+      <li><strong>Endpoint</strong> &mdash; a specific API URL.</li>
+      <li><strong>Method</strong> &mdash; HTTP verb (GET/POST/&hellip;).</li>
+      <li><strong>Status code</strong> &mdash; server result code.</li>
+      <li><strong>Query parameter</strong> &mdash; option after <code>?</code> in the URL.</li>
+      <li><strong>Pagination</strong> &mdash; retrieving results in pages.</li>
+      <li><strong>Rate limit</strong> &mdash; cap on requests per period.</li>
+      <li><strong>Backoff</strong> &mdash; increasing delay between retries.</li>
+      <li><strong>Session</strong> &mdash; reusable client with shared state.</li>
+    </ul>
+  </div>
+  <div>
+    <h3>References</h3>
+    <ul class="ref">
+      <li>requests documentation (requests.readthedocs.io)</li>
+      <li>Python standard library: json, csv, re, pathlib</li>
+      <li>GitHub REST API documentation</li>
+      <li>RFC 9110 &mdash; HTTP Semantics</li>
+      <li>JSON (RFC 8259)</li>
+    </ul>
+  </div>
+</div>
+
+<footer>API Automation with Python &mdash; developer reference. Library and product names are cited for identification only. Document 8 of the application-security reference set.</footer>
+
+</div>
+</body>
+</html>

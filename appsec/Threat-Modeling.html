@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Threat Modeling</title>
+<style>
+  :root{
+    --ink:#15181d; --ink2:#3d434d; --muted:#6b7280;
+    --line:#e4e7eb; --rule:#cfd4da; --surface:#ffffff; --plane:#f6f7f9;
+    --accent:#1f4e79; --accent2:#2d6ca8;
+    --note:#1f4e79; --caution:#9a6a00; --warn-bg:#fbf4e6;
+    --code-bg:#1b1f26; --code-ink:#e6e9ee; --ok:#1a7f37; --bad:#c0392b;
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-print-color-adjust:exact; print-color-adjust:exact;}
+  body{margin:0; color:var(--ink); background:var(--plane); font-family:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif; font-size:10.4pt; line-height:1.52;}
+  .doc{max-width:200mm; margin:0 auto; background:var(--surface); padding:0 18mm 16mm; box-shadow:0 1px 16px rgba(0,0,0,.06);}
+  @media screen{ body{padding:8mm 0;} }
+  @page{ size:A4; margin:18mm 16mm; }
+  @media print{ .doc{max-width:none; margin:0; padding:0; box-shadow:none;} }
+  h1,h2,h3{font-weight:600; color:var(--ink); line-height:1.25;}
+  h2{font-size:14.5pt; margin:9mm 0 2.5mm; padding-top:2mm; color:var(--accent); border-top:2px solid var(--accent);}
+  h2 .n{color:var(--accent2); font-weight:700; margin-right:2mm;}
+  h3{font-size:11.2pt; margin:5mm 0 1.5mm; color:var(--ink);}
+  p{margin:0 0 2.6mm;} a{color:var(--accent2); text-decoration:none;}
+  ul,ol{margin:0 0 2.8mm; padding-left:5.5mm;} li{margin:0 0 1.1mm;}
+  strong{font-weight:600;} code{font-family:"Cascadia Code",Consolas,monospace; font-size:9pt; background:#eef1f4; padding:.2mm 1.2mm; border-radius:2px;}
+  .lede{font-size:10.6pt; color:var(--ink2);}
+  header.title{border-bottom:3px solid var(--accent); padding:14mm 0 6mm; margin-bottom:2mm;}
+  header.title .cat{font-size:8.5pt; letter-spacing:.18em; text-transform:uppercase; color:var(--accent2); font-weight:700;}
+  header.title h1{font-size:25pt; margin:3mm 0 2mm; letter-spacing:-.3pt; color:var(--ink);}
+  header.title .scope{font-size:11pt; color:var(--ink2); max-width:155mm;}
+  header.title .meta{margin-top:5mm; font-size:8.6pt; color:var(--muted); display:flex; gap:7mm; flex-wrap:wrap;}
+  header.title .meta b{color:var(--ink2); font-weight:600;}
+  .toc{background:var(--plane); border:1px solid var(--line); border-radius:4px; padding:4mm 6mm; margin:5mm 0 2mm; columns:2; column-gap:10mm; font-size:9.3pt;}
+  .toc a{display:block; color:var(--ink2); padding:.8mm 0; break-inside:avoid;}
+  .toc a .n{color:var(--accent2); font-weight:600; display:inline-block; width:6mm;}
+  table{width:100%; border-collapse:collapse; font-size:9.1pt; margin:2.5mm 0 4mm;}
+  caption{caption-side:top; text-align:left; font-size:8.6pt; color:var(--muted); margin-bottom:1.5mm; font-style:italic;}
+  th,td{text-align:left; padding:2.1mm 2.6mm; border:1px solid var(--line); vertical-align:top;}
+  thead th{background:var(--accent); color:#fff; font-weight:600; font-size:8.5pt; letter-spacing:.02em; border-color:var(--accent);}
+  tbody tr:nth-child(even){background:var(--plane);}
+  td code, th code{background:#eef1f4;}
+  pre{background:var(--code-bg); color:var(--code-ink); border-radius:4px; padding:4mm 5mm; font-family:"Cascadia Code",Consolas,monospace; font-size:8.6pt; line-height:1.5; margin:2.5mm 0; white-space:pre-wrap; word-break:break-word;}
+  .note{border-left:3px solid var(--note); background:#eef3f9; padding:3mm 4mm; margin:3mm 0; font-size:9.6pt; border-radius:0 3px 3px 0;}
+  .note.caution{border-color:var(--caution); background:var(--warn-bg);}
+  .note .lab{font-weight:700; color:var(--note); text-transform:uppercase; font-size:8pt; letter-spacing:.06em; margin-right:1.5mm;}
+  .note.caution .lab{color:var(--caution);}
+  .cols{display:grid; grid-template-columns:1fr 1fr; gap:6mm;}
+  .tag{display:inline-block; font-size:7.6pt; font-weight:700; padding:.5mm 1.8mm; border-radius:2px; color:#fff; vertical-align:middle;}
+  .ref{font-size:9pt;} .ref li{margin-bottom:1.6mm;}
+  footer{margin-top:9mm; padding-top:3mm; border-top:1px solid var(--line); font-size:8.2pt; color:var(--muted);}
+  h2{break-after:avoid;} table,pre,.note{break-inside:avoid;}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<header class="title">
+  <div class="cat">Application Security &middot; Practice Reference</div>
+  <h1>Threat Modeling</h1>
+  <div class="scope">A structured, design-time process for identifying, analysing, prioritizing and mitigating threats to a system before implementation. Covers the process, methodologies (STRIDE and others), the DFD, risk analysis, threat domains, SDLC integration and tooling.</div>
+  <div class="meta"><span><b>Class</b> Design-time analysis</span><span><b>SDLC stage</b> Design (and on significant change)</span><span><b>Primary methods</b> STRIDE, PASTA, LINDDUN, attack trees</span></div>
+</header>
+
+<nav class="toc">
+  <a href="#s1"><span class="n">1</span>Definition &amp; scope</a>
+  <a href="#s2"><span class="n">2</span>Process</a>
+  <a href="#s3"><span class="n">3</span>Methodologies</a>
+  <a href="#s4"><span class="n">4</span>STRIDE</a>
+  <a href="#s5"><span class="n">5</span>Worked example</a>
+  <a href="#s6"><span class="n">6</span>Threat domains</a>
+  <a href="#s7"><span class="n">7</span>Risk analysis &amp; prioritization</a>
+  <a href="#s8"><span class="n">8</span>SDLC integration &amp; limitations</a>
+  <a href="#s9"><span class="n">9</span>Tooling</a>
+  <a href="#s10"><span class="n">10</span>Operational best practices</a>
+  <a href="#s11"><span class="n">11</span>Capability coverage</a>
+  <a href="#s12"><span class="n">12</span>Terminology &amp; references</a>
+</nav>
+
+<h2 id="s1"><span class="n">1</span>Definition &amp; scope</h2>
+<p>Threat modeling is the structured identification of how a system could be attacked, performed at <strong>design time</strong>, so that mitigations are designed in rather than retrofitted. It is the earliest security activity in the SDLC &mdash; it operates on architecture and data flow before code exists &mdash; and finds a class of defect the scanners cannot: <strong>design flaws and missing controls</strong> (e.g. an unauthenticated interface, absent authorization, unencrypted sensitive data). It produces security requirements that SAST/DAST later verify were implemented correctly.</p>
+
+<h2 id="s2"><span class="n">2</span>Process</h2>
+<p>The widely used framing is four questions; the artifacts and methods below answer them.</p>
+<table>
+  <thead><tr><th style="width:36%">Question</th><th>Activity / artifact</th></tr></thead>
+  <tbody>
+    <tr><td><strong>1. What are we building?</strong></td><td>Model the system with a <strong>Data Flow Diagram (DFD)</strong>: external entities, processes, data stores, data flows, and <strong>trust boundaries</strong> (where control changes hands). Identify assets and entry points.</td></tr>
+    <tr><td><strong>2. What can go wrong?</strong></td><td>Elicit threats per element using a methodology (STRIDE) and/or abuse/misuse cases.</td></tr>
+    <tr><td><strong>3. What are we going to do about it?</strong></td><td>Rank by risk; decide per threat: mitigate, accept, transfer, or eliminate. Mitigations become security requirements.</td></tr>
+    <tr><td><strong>4. Did we do a good job?</strong></td><td>Review coverage and mitigations; maintain the model as the design changes.</td></tr>
+  </tbody>
+</table>
+<p>Threats concentrate at trust boundaries, where data crosses from a less-trusted to a more-trusted context.</p>
+
+<h2 id="s3"><span class="n">3</span>Methodologies</h2>
+<table>
+  <thead><tr><th style="width:20%">Method</th><th style="width:30%">Orientation</th><th>Use</th></tr></thead>
+  <tbody>
+    <tr><td><strong>STRIDE</strong></td><td>Element-based (Microsoft)</td><td>General-purpose default; one threat category per security property.</td></tr>
+    <tr><td><strong>PASTA</strong></td><td>Risk/business-driven, 7-stage</td><td>When technical threats must be tied to business impact.</td></tr>
+    <tr><td><strong>LINDDUN</strong></td><td>Privacy-focused</td><td>Systems processing personal data; complements STRIDE.</td></tr>
+    <tr><td><strong>Attack trees</strong></td><td>Goal decomposition</td><td>Deep analysis of one critical objective and its sub-paths.</td></tr>
+    <tr><td><strong>Abuse / misuse cases</strong></td><td>Adversarial requirements</td><td>Enumerate how a malicious actor would misuse a feature &mdash; the inverse of a use case; strong for business-logic threats.</td></tr>
+    <tr><td><strong>DREAD</strong></td><td>Scoring scheme</td><td>Rank identified threats (Damage, Reproducibility, Exploitability, Affected users, Discoverability).</td></tr>
+    <tr><td><strong>MITRE ATT&amp;CK</strong></td><td>Adversary-technique knowledge base</td><td>Ground threats in observed real-world techniques.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="s4"><span class="n">4</span>STRIDE</h2>
+<table>
+  <thead><tr><th style="width:24%">Threat</th><th style="width:28%">Violated property</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Spoofing</strong></td><td>Authentication</td><td>Impersonating a user or component.</td></tr>
+    <tr><td><strong>Tampering</strong></td><td>Integrity</td><td>Unauthorized modification of data or code.</td></tr>
+    <tr><td><strong>Repudiation</strong></td><td>Non-repudiation</td><td>Denying an action with no evidence to the contrary.</td></tr>
+    <tr><td><strong>Information disclosure</strong></td><td>Confidentiality</td><td>Exposure of data to unauthorized parties.</td></tr>
+    <tr><td><strong>Denial of service</strong></td><td>Availability</td><td>Degrading or denying legitimate access.</td></tr>
+    <tr><td><strong>Elevation of privilege</strong></td><td>Authorization</td><td>Gaining capabilities beyond those granted.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="s5"><span class="n">5</span>Worked example &mdash; login + user database</h2>
+<p><strong>DFD:</strong> External entity <em>User</em> &rarr; process <em>Web application</em> &rarr; data store <em>User database</em>. Trust boundaries: internet&rarr;server, and application&rarr;database. STRIDE applied per element yields threats and required controls:</p>
+<table>
+  <thead><tr><th style="width:18%">STRIDE</th><th style="width:44%">Threat on this system</th><th>Required control</th></tr></thead>
+  <tbody>
+    <tr><td>Spoofing</td><td>Authentication with stolen/guessed credentials</td><td>MFA; credential-stuffing/brute-force protection</td></tr>
+    <tr><td>Tampering</td><td>Malicious input alters a DB query (SQL injection)</td><td>Parameterized queries; input validation</td></tr>
+    <tr><td>Repudiation</td><td>User denies an action; no record</td><td>Audit logging of security events</td></tr>
+    <tr><td>Information disclosure</td><td>Credentials intercepted; database exfiltrated in plaintext</td><td>TLS; password hashing; encryption at rest</td></tr>
+    <tr><td>Denial of service</td><td>Login endpoint flooded</td><td>Rate limiting; scaling</td></tr>
+    <tr><td>Elevation of privilege</td><td>Normal user reaches admin function</td><td>Enforced authorization; least privilege</td></tr>
+  </tbody>
+</table>
+<p>Each control becomes a security requirement defined before implementation.</p>
+
+<h2 id="s6"><span class="n">6</span>Threat domains</h2>
+<p>The method is applied across the surfaces of a modern system:</p>
+<table>
+  <thead><tr><th style="width:30%">Domain</th><th>Representative threats</th></tr></thead>
+  <tbody>
+    <tr><td><strong>API</strong></td><td>Broken object/function-level authorization, excessive data exposure, injection.</td></tr>
+    <tr><td><strong>Cloud</strong></td><td>Misconfigured storage/IAM, over-broad roles, exposed management planes.</td></tr>
+    <tr><td><strong>Microservices</strong></td><td>Inter-service authentication/authorization, trust between services, east-west traffic.</td></tr>
+    <tr><td><strong>Container / Kubernetes</strong></td><td>Privileged containers, exposed API server, weak network policy, secrets handling.</td></tr>
+    <tr><td><strong>Third-party / SaaS</strong></td><td>Delegated access, integration trust, data sharing.</td></tr>
+    <tr><td><strong>Supply chain</strong></td><td>Compromised dependencies and build pipeline.</td></tr>
+    <tr><td><strong>Privacy</strong></td><td>Linkability, identifiability, non-compliance (LINDDUN).</td></tr>
+    <tr><td><strong>Cryptographic</strong></td><td>Weak algorithms, poor key management, improper use.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="s7"><span class="n">7</span>Risk analysis &amp; prioritization</h2>
+<p>Threats are prioritized by <strong>likelihood</strong> &times; <strong>impact</strong>, optionally scored with a scheme such as DREAD or a CVSS-style rubric. Each threat receives a <strong>risk response</strong> (mitigate / accept / transfer / eliminate). Mitigations are tracked to completion; the risk remaining after mitigation &mdash; <strong>residual risk</strong> &mdash; is formally recorded and accepted by an owner. Security decisions are captured in <strong>Architecture Decision Records (ADRs)</strong>.</p>
+
+<h2 id="s8"><span class="n">8</span>SDLC integration &amp; limitations</h2>
+<p><strong>When:</strong> at design of a new system/feature, and on significant change (new trust boundary, new data type, new integration, architecture shift). <strong>Who:</strong> developers, architects, security and product together &mdash; the breadth of perspective drives coverage. <strong>Integration:</strong> a review gate in the design process; findings become backlog items; models are revalidated as living artifacts. Threat-model-as-code (pytm, Threagile) keeps models in version control.</p>
+<p><strong>Limitations:</strong> the output quality is subjective and bounded by participants' knowledge; threats outside the team's awareness are missed; it requires skilled facilitation and ongoing maintenance; and its value depends entirely on the identified mitigations being implemented and tracked.</p>
+
+<h2 id="s9"><span class="n">9</span>Tooling</h2>
+<table>
+  <thead><tr><th style="width:30%">Tool</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td>OWASP Threat Dragon</td><td>Open-source; DFD + threat/mitigation recording; STRIDE, LINDDUN.</td></tr>
+    <tr><td>Microsoft Threat Modeling Tool</td><td>STRIDE; auto-generates threats from a DFD.</td></tr>
+    <tr><td>IriusRisk</td><td>Enterprise automation; control/standards mapping; SDLC integration.</td></tr>
+    <tr><td>ThreatModeler; SD Elements (Security Compass)</td><td>Enterprise automation; requirements generation.</td></tr>
+    <tr><td>pytm; Threagile</td><td>Threat-model-as-code (Python; YAML/Go) in version control.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="s10"><span class="n">10</span>Operational best practices</h2>
+<ul>
+  <li>Keep sessions lightweight and timeboxed; model the risky parts, not everything.</li>
+  <li>Use STRIDE plus a simple risk ranking as the default; add PASTA/LINDDUN/attack trees where warranted.</li>
+  <li>Include developers, architects, security and product in the session.</li>
+  <li>Convert every mitigation into a tracked backlog item; record residual risk and ADRs.</li>
+  <li>Make threat modeling a gate in design review; revalidate on significant change.</li>
+  <li>Maintain models as living artifacts, ideally as code in version control.</li>
+</ul>
+
+<h2 id="s11"><span class="n">11</span>Capability coverage</h2>
+<table>
+  <thead><tr><th style="width:30%">Area</th><th>Elements</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Modeling the system</strong></td><td>Application threat modeling; architecture security review; DFD; trust &amp; security boundaries; asset identification; entry points; data stores; external dependencies</td></tr>
+    <tr><td><strong>Threat elicitation</strong></td><td>STRIDE; attack trees; abuse &amp; misuse cases; authentication, authorization and data-protection threats; business-logic threats</td></tr>
+    <tr><td><strong>Threat domains</strong></td><td>API; cloud; microservices; container/Kubernetes; third-party/SaaS; supply chain; privacy; cryptographic</td></tr>
+    <tr><td><strong>Risk analysis</strong></td><td>Threat likelihood; impact assessment; risk scoring</td></tr>
+    <tr><td><strong>Controls &amp; SDLC</strong></td><td>Security requirements &amp; controls; mitigation tracking; residual risk; ADRs; review gates; model maintenance/revalidation; SDLC integration</td></tr>
+  </tbody>
+</table>
+<p class="lede" style="font-size:9.5pt;">Threat modeling sets the requirements the other controls verify. Adjacent capabilities &mdash; API security, cloud security, container/Kubernetes security, IaC security, software supply-chain security, vulnerability management, security architecture and DevSecOps &mdash; are tracked as their own areas.</p>
+
+<h2 id="s12"><span class="n">12</span>Terminology &amp; references</h2>
+<div class="cols">
+  <div>
+    <h3>Terminology</h3>
+    <ul style="font-size:9.3pt;">
+      <li><strong>DFD</strong> &mdash; data flow diagram of components and flows.</li>
+      <li><strong>Trust boundary</strong> &mdash; where trust level changes.</li>
+      <li><strong>Asset</strong> &mdash; something worth protecting.</li>
+      <li><strong>Attack surface</strong> &mdash; all points an attacker can reach.</li>
+      <li><strong>Abuse/misuse case</strong> &mdash; adversarial inverse of a use case.</li>
+      <li><strong>Residual risk</strong> &mdash; risk remaining after mitigation.</li>
+      <li><strong>ADR</strong> &mdash; architecture decision record.</li>
+    </ul>
+  </div>
+  <div>
+    <h3>References</h3>
+    <ul class="ref">
+      <li>Shostack, <em>Threat Modeling: Designing for Security</em></li>
+      <li>Threat Modeling Manifesto</li>
+      <li>Microsoft STRIDE; OWASP Threat Modeling</li>
+      <li>LINDDUN (KU Leuven)</li>
+      <li>MITRE ATT&amp;CK</li>
+      <li>OWASP SAMM; NIST SP 800-218 (SSDF)</li>
+    </ul>
+  </div>
+</div>
+
+<footer>Threat Modeling &mdash; practice reference. Method and tool names are cited for identification only. Document 6 of the application-security reference set.</footer>
+
+</div>
+</body>
+</html>

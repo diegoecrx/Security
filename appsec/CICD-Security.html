@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CI/CD Security (DevSecOps)</title>
+<style>
+  :root{
+    --ink:#15181d; --ink2:#3d434d; --muted:#6b7280;
+    --line:#e4e7eb; --rule:#cfd4da; --surface:#ffffff; --plane:#f6f7f9;
+    --accent:#1f4e79; --accent2:#2d6ca8;
+    --note:#1f4e79; --caution:#9a6a00; --warn-bg:#fbf4e6;
+    --code-bg:#1b1f26; --code-ink:#e6e9ee; --ok:#1a7f37; --bad:#c0392b;
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-print-color-adjust:exact; print-color-adjust:exact;}
+  body{margin:0; color:var(--ink); background:var(--plane); font-family:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif; font-size:10.4pt; line-height:1.52;}
+  .doc{max-width:200mm; margin:0 auto; background:var(--surface); padding:0 18mm 16mm; box-shadow:0 1px 16px rgba(0,0,0,.06);}
+  @media screen{ body{padding:8mm 0;} }
+  @page{ size:A4; margin:18mm 16mm; }
+  @media print{ .doc{max-width:none; margin:0; padding:0; box-shadow:none;} }
+  h1,h2,h3{font-weight:600; color:var(--ink); line-height:1.25;}
+  h2{font-size:14.5pt; margin:9mm 0 2.5mm; padding-top:2mm; color:var(--accent); border-top:2px solid var(--accent);}
+  h2 .n{color:var(--accent2); font-weight:700; margin-right:2mm;}
+  h3{font-size:11.2pt; margin:5mm 0 1.5mm; color:var(--ink);}
+  p{margin:0 0 2.6mm;} a{color:var(--accent2); text-decoration:none;}
+  ul,ol{margin:0 0 2.8mm; padding-left:5.5mm;} li{margin:0 0 1.1mm;}
+  strong{font-weight:600;} code{font-family:"Cascadia Code",Consolas,monospace; font-size:9pt; background:#eef1f4; padding:.2mm 1.2mm; border-radius:2px;}
+  .lede{font-size:10.6pt; color:var(--ink2);}
+  header.title{border-bottom:3px solid var(--accent); padding:14mm 0 6mm; margin-bottom:2mm;}
+  header.title .cat{font-size:8.5pt; letter-spacing:.18em; text-transform:uppercase; color:var(--accent2); font-weight:700;}
+  header.title h1{font-size:25pt; margin:3mm 0 2mm; letter-spacing:-.3pt; color:var(--ink);}
+  header.title .scope{font-size:11pt; color:var(--ink2); max-width:155mm;}
+  header.title .meta{margin-top:5mm; font-size:8.6pt; color:var(--muted); display:flex; gap:7mm; flex-wrap:wrap;}
+  header.title .meta b{color:var(--ink2); font-weight:600;}
+  .toc{background:var(--plane); border:1px solid var(--line); border-radius:4px; padding:4mm 6mm; margin:5mm 0 2mm; columns:2; column-gap:10mm; font-size:9.3pt;}
+  .toc a{display:block; color:var(--ink2); padding:.8mm 0; break-inside:avoid;}
+  .toc a .n{color:var(--accent2); font-weight:600; display:inline-block; width:6mm;}
+  table{width:100%; border-collapse:collapse; font-size:9.1pt; margin:2.5mm 0 4mm;}
+  caption{caption-side:top; text-align:left; font-size:8.6pt; color:var(--muted); margin-bottom:1.5mm; font-style:italic;}
+  th,td{text-align:left; padding:2.1mm 2.6mm; border:1px solid var(--line); vertical-align:top;}
+  thead th{background:var(--accent); color:#fff; font-weight:600; font-size:8.5pt; letter-spacing:.02em; border-color:var(--accent);}
+  tbody tr:nth-child(even){background:var(--plane);}
+  td code, th code{background:#eef1f4;}
+  pre{background:var(--code-bg); color:var(--code-ink); border-radius:4px; padding:4mm 5mm; font-family:"Cascadia Code",Consolas,monospace; font-size:8.6pt; line-height:1.5; margin:2.5mm 0; white-space:pre-wrap; word-break:break-word;}
+  pre .c{color:#8b94a3;} pre .k{color:#7cc5ff;} pre .s{color:#9ee493;} pre .f{color:#f0c674;} pre .bad{color:#ff8f8f;} pre .ok{color:#8ce39a;}
+  .note{border-left:3px solid var(--note); background:#eef3f9; padding:3mm 4mm; margin:3mm 0; font-size:9.6pt; border-radius:0 3px 3px 0;}
+  .note.caution{border-color:var(--caution); background:var(--warn-bg);}
+  .note .lab{font-weight:700; color:var(--note); text-transform:uppercase; font-size:8pt; letter-spacing:.06em; margin-right:1.5mm;}
+  .note.caution .lab{color:var(--caution);}
+  .cols{display:grid; grid-template-columns:1fr 1fr; gap:6mm;}
+  .tag{display:inline-block; font-size:7.6pt; font-weight:700; padding:.5mm 1.8mm; border-radius:2px; color:#fff; vertical-align:middle;}
+  .ref{font-size:9pt;} .ref li{margin-bottom:1.6mm;}
+  footer{margin-top:9mm; padding-top:3mm; border-top:1px solid var(--line); font-size:8.2pt; color:var(--muted);}
+  h2{break-after:avoid;} table,pre,.note{break-inside:avoid;}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<header class="title">
+  <div class="cat">Application Security &middot; Domain Reference</div>
+  <h1>CI/CD Security (DevSecOps)</h1>
+  <div class="scope">Securing the software delivery pipeline along two dimensions: integrating security testing <em>into</em> the pipeline (automated gates), and hardening the pipeline <em>itself</em> against compromise (a privileged, high-value supply-chain target). Covers architecture, threats, hardening, provenance, tooling and practice.</div>
+  <div class="meta"><span><b>Scope</b> Pipeline, build, artifact, supply chain</span><span><b>SDLC stage</b> All (orchestration)</span><span><b>Primary standards</b> OWASP Top 10 CI/CD, SLSA, NIST SSDF</span></div>
+</header>
+
+<nav class="toc">
+  <a href="#s1"><span class="n">1</span>Definition &amp; the two dimensions</a>
+  <a href="#s2"><span class="n">2</span>Security in the pipeline (gates)</a>
+  <a href="#s3"><span class="n">3</span>Pipeline threats (OWASP CI/CD)</a>
+  <a href="#s4"><span class="n">4</span>Supply-chain attack example</a>
+  <a href="#s5"><span class="n">5</span>Pipeline hardening</a>
+  <a href="#s6"><span class="n">6</span>Provenance &amp; integrity (SLSA)</a>
+  <a href="#s7"><span class="n">7</span>Gates, policy &amp; governance</a>
+  <a href="#s8"><span class="n">8</span>Constraints</a>
+  <a href="#s9"><span class="n">9</span>Tooling</a>
+  <a href="#s10"><span class="n">10</span>Operational best practices</a>
+  <a href="#s11"><span class="n">11</span>Capability coverage</a>
+  <a href="#s12"><span class="n">12</span>Terminology &amp; references</a>
+</nav>
+
+<h2 id="s1"><span class="n">1</span>Definition &amp; the two dimensions</h2>
+<p>CI/CD security addresses the automated pipeline that builds, tests and deploys software. It has two distinct objectives, each with its own threat model:</p>
+<table>
+  <thead><tr><th style="width:26%">Dimension</th><th style="width:37%">Objective</th><th>Failure mode</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Security in the pipeline</strong></td><td>Run automated security checks so defective code cannot progress ("shift left").</td><td>Vulnerable software ships.</td></tr>
+    <tr><td><strong>Security of the pipeline</strong></td><td>Harden the build system, its credentials and components against compromise.</td><td>A single compromise poisons every artifact produced (one-to-many breach).</td></tr>
+  </tbody>
+</table>
+<p>The pipeline holds source code, signing keys and production credentials &mdash; more privilege than most individual accounts &mdash; and its output is automatically trusted downstream. This makes it a primary target (SolarWinds, Codecov, tj-actions).</p>
+
+<h2 id="s2"><span class="n">2</span>Security in the pipeline (gates)</h2>
+<p>A security control is attached at each stage. Each gate is a technique from the reference set, run automatically:</p>
+<table>
+  <thead><tr><th style="width:20%">Stage</th><th style="width:34%">Gate</th><th>Checks</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Commit</strong></td><td>Secret scanning (pre-commit / push protection)</td><td>No credentials enter history</td></tr>
+    <tr><td><strong>Build</strong></td><td>SCA + SAST</td><td>Vulnerable dependencies; code-level defects</td></tr>
+    <tr><td><strong>Test</strong></td><td>DAST / IAST</td><td>Runtime-exploitable defects on a deployed build</td></tr>
+    <tr><td><strong>Release</strong></td><td>Container image scan + artifact signing + SBOM</td><td>Image vulnerabilities; integrity; inventory</td></tr>
+    <tr><td><strong>Deploy</strong></td><td>IaC scan + admission policy</td><td>Infrastructure misconfiguration; signed-only deploys</td></tr>
+  </tbody>
+</table>
+<p>A gate that detects a critical issue stops progression (the <strong>quality gate</strong>). Findings feed back to developers; continuous monitoring re-opens the loop when a new advisory affects a shipped artifact.</p>
+
+<h2 id="s3"><span class="n">3</span>Pipeline threats (OWASP Top 10 CI/CD Security Risks)</h2>
+<table>
+  <thead><tr><th style="width:8%">ID</th><th style="width:34%">Risk</th><th>Summary</th></tr></thead>
+  <tbody>
+    <tr><td>SEC-1</td><td>Insufficient Flow Control</td><td>A single actor can push code to production without review/checks.</td></tr>
+    <tr><td>SEC-2</td><td>Inadequate Identity &amp; Access Management</td><td>Excess, stale or over-privileged identities.</td></tr>
+    <tr><td>SEC-3</td><td>Dependency Chain Abuse</td><td>Build resolves a malicious package (confusion, typosquatting).</td></tr>
+    <tr><td>SEC-4</td><td>Poisoned Pipeline Execution (PPE)</td><td>Attacker injects commands into pipeline steps (e.g. via a PR).</td></tr>
+    <tr><td>SEC-5</td><td>Insufficient PBAC</td><td>Pipeline jobs have more access than required.</td></tr>
+    <tr><td>SEC-6</td><td>Insufficient Credential Hygiene</td><td>Secrets sprawled in pipeline, logs, config; long-lived keys.</td></tr>
+    <tr><td>SEC-7</td><td>Insecure System Configuration</td><td>Unpatched, over-exposed build systems/runners.</td></tr>
+    <tr><td>SEC-8</td><td>Ungoverned Third-Party Services</td><td>Many external plugins/integrations with access and little oversight.</td></tr>
+    <tr><td>SEC-9</td><td>Improper Artifact Integrity Validation</td><td>No verification that the deployed artifact is the one built/approved.</td></tr>
+    <tr><td>SEC-10</td><td>Insufficient Logging &amp; Visibility</td><td>Pipeline compromise is neither detectable nor reconstructable.</td></tr>
+  </tbody>
+</table>
+<p>Most of these concern access, trust and configuration &mdash; not application code &mdash; which is the common blind spot.</p>
+
+<h2 id="s4"><span class="n">4</span>Supply-chain attack example &mdash; tj-actions/changed-files (CVE-2025-30066)</h2>
+<p>In March 2025 a widely used GitHub Action (present in 20,000+ repositories) was compromised. Sequence:</p>
+<ol>
+  <li>A leaked token for the action's repository was obtained.</li>
+  <li>A malicious commit was added, and existing version <em>tags</em> were re-pointed to it.</li>
+  <li>Consuming pipelines pulled the "updated" action and executed it.</li>
+  <li>The injected script extracted CI/CD secrets from the runner into build logs (public logs exposed them).</li>
+</ol>
+<p><strong>Root cause:</strong> trusting a mutable version tag of a third-party action rather than pinning an immutable commit hash. No first-party application code was defective; the pipeline's trust in an external component was the vulnerability. Pinning to a full commit SHA would have blunted it.</p>
+
+<h2 id="s5"><span class="n">5</span>Pipeline hardening</h2>
+<table>
+  <thead><tr><th style="width:30%">Control</th><th>Function</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Pin dependencies &amp; actions</strong></td><td>Reference third-party components by immutable commit hash, not a movable tag (mitigates SEC-3, the tj-actions class).</td></tr>
+    <tr><td><strong>Least privilege (PBAC/IAM)</strong></td><td>Grant each job the minimum scope; restrict secret access so one step cannot reach everything.</td></tr>
+    <tr><td><strong>Short-lived credentials (OIDC)</strong></td><td>Mint per-run identity tokens that expire in minutes; eliminate long-lived stored keys.</td></tr>
+    <tr><td><strong>Service accounts &amp; token management</strong></td><td>Give the pipeline a dedicated scoped identity; inventory, rotate and revoke tokens.</td></tr>
+    <tr><td><strong>Ephemeral, hardened runners</strong></td><td>Fresh, disposable build hosts with egress controls; malware cannot persist.</td></tr>
+    <tr><td><strong>Environment separation</strong></td><td>Isolated dev / staging / production with distinct controls and credentials.</td></tr>
+    <tr><td><strong>Flow control &amp; review</strong></td><td>Required review and status checks before merge; deployment approvals before production.</td></tr>
+    <tr><td><strong>Audit logging &amp; monitoring</strong></td><td>Tamper-evident record of who ran what, when; alert on anomalous runs.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="s6"><span class="n">6</span>Provenance &amp; integrity (SLSA)</h2>
+<p>Integrity controls prove that a deployed artifact is the unmodified output of a known build from known sources. <strong>Artifact signing</strong> (e.g. Sigstore/cosign) and <strong>provenance</strong> attestations bind an artifact to its build. <strong>SLSA</strong> (Supply-chain Levels for Software Artifacts) grades build integrity in levels, from no guarantees to non-falsifiable provenance from a hardened build. Admission policy at deploy time accepts only signed artifacts with valid provenance. SBOMs are generated and distributed alongside releases. These controls align with NIST SSDF and are increasingly required contractually.</p>
+
+<h2 id="s7"><span class="n">7</span>Gates, policy &amp; governance</h2>
+<ul>
+  <li><strong>Security quality gates</strong> &mdash; fail the build or block the merge above a defined severity/confidence threshold.</li>
+  <li><strong>Vulnerability thresholds</strong> &mdash; explicit criteria for what blocks vs. warns.</li>
+  <li><strong>Risk acceptance / exceptions</strong> &mdash; documented, time-boxed, approved deviations.</li>
+  <li><strong>Deployment approvals</strong> &mdash; a named human gate before production promotion.</li>
+  <li><strong>Audit logging</strong> &mdash; evidence for compliance and incident reconstruction.</li>
+</ul>
+<div class="note caution"><span class="lab">Caution</span>Gating on fast, high-confidence signals is effective; gating on slow or noisy checks trains teams to bypass the pipeline. Deep or noisy analysis belongs off the blocking path (asynchronous/scheduled), not in every build.</div>
+
+<h2 id="s8"><span class="n">8</span>Constraints</h2>
+<ul>
+  <li><strong>Speed vs. assurance</strong> &mdash; the pipeline exists to deliver quickly; gates add latency. Placement (block vs. warn vs. async) must respect this or controls get disabled.</li>
+  <li><strong>Dependence on the gates</strong> &mdash; pipeline security is only as good as the scanners and rules it runs.</li>
+  <li><strong>Complexity &amp; third-party trust</strong> &mdash; many components and plugins to vet; each is attacker-reachable code with access.</li>
+  <li><strong>Blast radius</strong> &mdash; a compromised pipeline is a one-to-many event and can operate undetected without logging.</li>
+</ul>
+
+<h2 id="s9"><span class="n">9</span>Tooling</h2>
+<table>
+  <thead><tr><th style="width:26%">Layer</th><th>Tools</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Pipeline platforms</strong></td><td>GitHub Actions, GitLab CI/CD, Jenkins, Azure DevOps, CircleCI; Argo CD, Tekton, Flux (cloud-native)</td></tr>
+    <tr><td><strong>Security gates</strong></td><td>SAST, SCA, DAST and secret-scanning tools (per their references); IaC/container scanners: Checkov, tfsec, Trivy, KICS</td></tr>
+    <tr><td><strong>Supply-chain &amp; provenance</strong></td><td>Sigstore/cosign, in-toto, SLSA framework, OpenSSF Scorecard, StepSecurity Harden-Runner, Chainguard</td></tr>
+    <tr><td><strong>Posture / orchestration</strong></td><td>ASPM platforms aggregating findings and managing gates across the above</td></tr>
+  </tbody>
+</table>
+
+<h2 id="s10"><span class="n">10</span>Operational best practices</h2>
+<ul>
+  <li>Run security gates in warn mode first; enforce on criticals once tuned.</li>
+  <li>Pin all third-party actions/components to immutable hashes.</li>
+  <li>Replace long-lived CI secrets with OIDC short-lived credentials.</li>
+  <li>Apply least privilege to jobs and secrets; separate environments.</li>
+  <li>Sign artifacts, generate provenance and SBOMs; enforce signed-only deployment.</li>
+  <li>Require review and production deployment approvals; enable audit logging and anomaly alerting.</li>
+  <li>Provide golden/hardened pipeline templates so the secure path is the default.</li>
+</ul>
+
+<h2 id="s11"><span class="n">11</span>Capability coverage</h2>
+<table>
+  <thead><tr><th style="width:30%">Area</th><th>Elements</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Pipeline &amp; source</strong></td><td>Secure CI/CD architecture; pipeline security; repository security; branch protection; pull-request controls</td></tr>
+    <tr><td><strong>Identity, secrets &amp; access</strong></td><td>Secrets management; IAM / least privilege; pipeline permissions; service accounts; token management; runner &amp; self-hosted-runner security; environment separation</td></tr>
+    <tr><td><strong>Build &amp; artifact integrity</strong></td><td>Build security; artifact security, signing &amp; integrity; dependency management</td></tr>
+    <tr><td><strong>Integrated gates</strong></td><td>SAST, SCA, DAST and secret-scanning integration; IaC &amp; container security; security quality gates; vulnerability thresholds</td></tr>
+    <tr><td><strong>Supply chain &amp; provenance</strong></td><td>Supply-chain security; SLSA / provenance; SBOM generation &amp; distribution</td></tr>
+    <tr><td><strong>Governance &amp; monitoring</strong></td><td>Risk acceptance / exceptions; deployment approvals; audit logging; pipeline monitoring</td></tr>
+  </tbody>
+</table>
+<p class="lede" style="font-size:9.5pt;">CI/CD security is where the other controls are enforced. Adjacent capabilities &mdash; API security, cloud security, container/Kubernetes security, IaC security, software supply-chain security, vulnerability management and security architecture &mdash; are tracked as their own areas.</p>
+
+<h2 id="s12"><span class="n">12</span>Terminology &amp; references</h2>
+<div class="cols">
+  <div>
+    <h3>Terminology</h3>
+    <ul style="font-size:9.3pt;">
+      <li><strong>Runner / agent</strong> &mdash; host that executes pipeline jobs.</li>
+      <li><strong>PPE</strong> &mdash; poisoned pipeline execution.</li>
+      <li><strong>Dependency confusion</strong> &mdash; public package shadows an internal one.</li>
+      <li><strong>Pinning</strong> &mdash; referencing an immutable version (commit hash).</li>
+      <li><strong>OIDC federation</strong> &mdash; short-lived per-run identity tokens.</li>
+      <li><strong>Provenance</strong> &mdash; verifiable record of how an artifact was built.</li>
+      <li><strong>SLSA</strong> &mdash; Supply-chain Levels for Software Artifacts.</li>
+    </ul>
+  </div>
+  <div>
+    <h3>References</h3>
+    <ul class="ref">
+      <li>OWASP Top 10 CI/CD Security Risks</li>
+      <li>SLSA framework (slsa.dev)</li>
+      <li>NIST SP 800-218 (SSDF)</li>
+      <li>Sigstore; in-toto attestation</li>
+      <li>OpenSSF Scorecard</li>
+      <li>CVE-2025-30066 (tj-actions/changed-files)</li>
+    </ul>
+  </div>
+</div>
+
+<footer>CI/CD Security (DevSecOps) &mdash; domain reference. Standards, incident and tool names are cited for identification only. Document 5 of the application-security reference set.</footer>
+
+</div>
+</body>
+</html>

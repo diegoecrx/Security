@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dynamic Application Security Testing (DAST)</title>
+<style>
+  :root{
+    --ink:#15181d; --ink2:#3d434d; --muted:#6b7280;
+    --line:#e4e7eb; --rule:#cfd4da;
+    --surface:#ffffff; --plane:#f6f7f9;
+    --accent:#1f4e79; --accent2:#2d6ca8;
+    --note:#1f4e79; --caution:#9a6a00; --warn-bg:#fbf4e6;
+    --code-bg:#1b1f26; --code-ink:#e6e9ee;
+    --ok:#1a7f37; --bad:#c0392b;
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-print-color-adjust:exact; print-color-adjust:exact;}
+  body{margin:0; color:var(--ink); background:var(--plane);
+    font-family:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+    font-size:10.4pt; line-height:1.52;}
+  .doc{max-width:200mm; margin:0 auto; background:var(--surface);
+    padding:0 18mm 16mm; box-shadow:0 1px 16px rgba(0,0,0,.06);}
+  @media screen{ body{padding:8mm 0;} }
+  @page{ size:A4; margin:18mm 16mm; }
+  @media print{ .doc{max-width:none; margin:0; padding:0; box-shadow:none;} }
+  h1,h2,h3{font-weight:600; color:var(--ink); line-height:1.25;}
+  h2{font-size:14.5pt; margin:9mm 0 2.5mm; padding-top:2mm; color:var(--accent); border-top:2px solid var(--accent);}
+  h2 .n{color:var(--accent2); font-weight:700; margin-right:2mm;}
+  h3{font-size:11.2pt; margin:5mm 0 1.5mm; color:var(--ink);}
+  p{margin:0 0 2.6mm;} a{color:var(--accent2); text-decoration:none;}
+  ul,ol{margin:0 0 2.8mm; padding-left:5.5mm;} li{margin:0 0 1.1mm;}
+  strong{font-weight:600;} code{font-family:"Cascadia Code",Consolas,monospace; font-size:9pt; background:#eef1f4; padding:.2mm 1.2mm; border-radius:2px;}
+  .lede{font-size:10.6pt; color:var(--ink2);}
+  header.title{border-bottom:3px solid var(--accent); padding:14mm 0 6mm; margin-bottom:2mm;}
+  header.title .cat{font-size:8.5pt; letter-spacing:.18em; text-transform:uppercase; color:var(--accent2); font-weight:700;}
+  header.title h1{font-size:25pt; margin:3mm 0 2mm; letter-spacing:-.3pt; color:var(--ink);}
+  header.title .scope{font-size:11pt; color:var(--ink2); max-width:155mm;}
+  header.title .meta{margin-top:5mm; font-size:8.6pt; color:var(--muted); display:flex; gap:7mm; flex-wrap:wrap;}
+  header.title .meta b{color:var(--ink2); font-weight:600;}
+  .toc{background:var(--plane); border:1px solid var(--line); border-radius:4px; padding:4mm 6mm; margin:5mm 0 2mm; columns:2; column-gap:10mm; font-size:9.3pt;}
+  .toc a{display:block; color:var(--ink2); padding:.8mm 0; break-inside:avoid;}
+  .toc a .n{color:var(--accent2); font-weight:600; display:inline-block; width:6mm;}
+  table{width:100%; border-collapse:collapse; font-size:9.1pt; margin:2.5mm 0 4mm;}
+  caption{caption-side:top; text-align:left; font-size:8.6pt; color:var(--muted); margin-bottom:1.5mm; font-style:italic;}
+  th,td{text-align:left; padding:2.1mm 2.6mm; border:1px solid var(--line); vertical-align:top;}
+  thead th{background:var(--accent); color:#fff; font-weight:600; font-size:8.5pt; letter-spacing:.02em; border-color:var(--accent);}
+  tbody tr:nth-child(even){background:var(--plane);}
+  td code, th code{background:#eef1f4;}
+  pre{background:var(--code-bg); color:var(--code-ink); border-radius:4px; padding:4mm 5mm; font-family:"Cascadia Code",Consolas,monospace; font-size:8.6pt; line-height:1.5; margin:2.5mm 0; white-space:pre-wrap; word-break:break-word;}
+  pre .c{color:#8b94a3;} pre .k{color:#7cc5ff;} pre .s{color:#9ee493;} pre .f{color:#f0c674;} pre .bad{color:#ff8f8f;} pre .ok{color:#8ce39a;}
+  .note{border-left:3px solid var(--note); background:#eef3f9; padding:3mm 4mm; margin:3mm 0; font-size:9.6pt; border-radius:0 3px 3px 0;}
+  .note.caution{border-color:var(--caution); background:var(--warn-bg);}
+  .note .lab{font-weight:700; color:var(--note); text-transform:uppercase; font-size:8pt; letter-spacing:.06em; margin-right:1.5mm;}
+  .note.caution .lab{color:var(--caution);}
+  .cols{display:grid; grid-template-columns:1fr 1fr; gap:6mm;}
+  .tag{display:inline-block; font-size:7.6pt; font-weight:700; padding:.5mm 1.8mm; border-radius:2px; color:#fff; vertical-align:middle;}
+  .ref{font-size:9pt;} .ref li{margin-bottom:1.6mm;}
+  footer{margin-top:9mm; padding-top:3mm; border-top:1px solid var(--line); font-size:8.2pt; color:var(--muted);}
+  h2{break-after:avoid;} table,pre,.note{break-inside:avoid;}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<header class="title">
+  <div class="cat">Application Security &middot; Technique Reference</div>
+  <h1>Dynamic Application Security Testing</h1>
+  <div class="scope">Black-box testing of a running application by sending crafted requests and analysing responses to identify exploitable defects. Covers mechanism, testing surfaces, vulnerability coverage, scan configuration, CI/CD integration, limitations, tooling and operational practice.</div>
+  <div class="meta"><span><b>Abbreviation</b> DAST</span><span><b>Class</b> Dynamic / black-box</span><span><b>SDLC stage</b> Test / pre-production</span><span><b>Primary standards</b> OWASP ASVS, Top 10, API Security Top 10, WSTG</span></div>
+</header>
+
+<nav class="toc">
+  <a href="#s1"><span class="n">1</span>Definition &amp; scope</a>
+  <a href="#s2"><span class="n">2</span>Testing mechanism</a>
+  <a href="#s3"><span class="n">3</span>Testing surfaces</a>
+  <a href="#s4"><span class="n">4</span>Vulnerability coverage</a>
+  <a href="#s5"><span class="n">5</span>Worked example</a>
+  <a href="#s6"><span class="n">6</span>Scan configuration &amp; coverage</a>
+  <a href="#s7"><span class="n">7</span>CI/CD integration</a>
+  <a href="#s8"><span class="n">8</span>Limitations</a>
+  <a href="#s9"><span class="n">9</span>Tooling</a>
+  <a href="#s10"><span class="n">10</span>Operational best practices</a>
+  <a href="#s11"><span class="n">11</span>Capability coverage</a>
+  <a href="#s12"><span class="n">12</span>Terminology &amp; references</a>
+</nav>
+
+<h2 id="s1"><span class="n">1</span>Definition &amp; scope</h2>
+<p>DAST tests a <strong>running</strong> application from the outside, without access to source code. It sends HTTP requests &mdash; including crafted attack payloads &mdash; and analyses the responses for evidence of a vulnerability. Because it has no internal visibility and interacts only through exposed interfaces, it is a <strong>black-box</strong> technique that approximates an external attacker's perspective.</p>
+<p>DAST requires a deployed target (test, staging, or a controlled production scope), typically valid credentials for authenticated areas, and explicit authorization to test. It operates at the <strong>Test / pre-production</strong> stage and confirms real, reproducible exploitability on the running system. It is complementary to SAST (source analysis), SCA (components) and secret scanning.</p>
+<table>
+  <caption>DAST in relation to adjacent techniques</caption>
+  <thead><tr><th style="width:14%">Technique</th><th style="width:18%">Visibility</th><th style="width:16%">Executes app?</th><th>Distinct value</th></tr></thead>
+  <tbody>
+    <tr><td><strong>DAST</strong></td><td>Black-box</td><td>Yes</td><td>Confirmed exploitability; runtime, config, auth, transport defects</td></tr>
+    <tr><td>SAST</td><td>White-box</td><td>No</td><td>Exact source location; earliest stage; coverage of unreachable paths</td></tr>
+    <tr><td>IAST</td><td>Grey-box</td><td>Yes</td><td>Runtime-confirmed finding with source location</td></tr>
+    <tr><td>Manual pentest</td><td>Black/grey</td><td>Yes</td><td>Business-logic and chained-exploit discovery</td></tr>
+  </tbody>
+</table>
+
+<h2 id="s2"><span class="n">2</span>Testing mechanism</h2>
+<ol>
+  <li><strong>Discovery / crawling</strong> &mdash; spider the application (follow links, submit forms, parse API definitions) to enumerate the reachable <strong>attack surface</strong>: endpoints, parameters, headers. Authenticated crawling requires session handling.</li>
+  <li><strong>Input identification</strong> &mdash; catalogue every injectable point (query/body parameters, headers, cookies, path segments).</li>
+  <li><strong>Passive scanning</strong> &mdash; inspect normal traffic for defects without attacking: missing security headers, insecure cookie flags, information disclosure, weak TLS.</li>
+  <li><strong>Active scanning</strong> &mdash; inject attack payloads (fuzzing) into each input to provoke a detectable condition.</li>
+  <li><strong>Response analysis (oracle)</strong> &mdash; determine success from the response: reflected payload, error signature, time delay (time-based), status change, or an out-of-band callback.</li>
+  <li><strong>Confirmation</strong> &mdash; replay to verify reproducibility (proof-based scanning), reducing false positives.</li>
+</ol>
+<div class="note"><span class="lab">Note</span>Active scanning is an attack. It must be run only against authorized targets, and its side effects (form submissions, state changes, emails, rate-limit consumption) make test environments with disposable data the default target rather than production.</div>
+
+<h2 id="s3"><span class="n">3</span>Testing surfaces</h2>
+<table>
+  <thead><tr><th style="width:26%">Surface</th><th>Scope</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Web application</strong></td><td>Server-rendered and dynamic pages; forms; parameters.</td></tr>
+    <tr><td><strong>API (REST)</strong></td><td>Endpoints driven from an OpenAPI/Swagger definition; covered by the OWASP API Security Top 10.</td></tr>
+    <tr><td><strong>GraphQL</strong></td><td>Single endpoint with introspection; query depth/complexity, authorization per field, injection via arguments.</td></tr>
+    <tr><td><strong>SPA / JavaScript applications</strong></td><td>Client-rendered apps requiring a JS-capable crawler to discover the real request surface.</td></tr>
+    <tr><td><strong>Authentication &amp; session</strong></td><td>Login flows, session fixation, cookie/token handling, logout.</td></tr>
+    <tr><td><strong>Authorization / access control</strong></td><td>Forced browsing, horizontal/vertical privilege checks (partial &mdash; object-level logic is limited).</td></tr>
+  </tbody>
+</table>
+
+<h2 id="s4"><span class="n">4</span>Vulnerability coverage</h2>
+<table>
+  <caption>Representative coverage (OWASP Top 10 and API Security Top 10)</caption>
+  <thead><tr><th style="width:44%">Category</th><th style="width:16%">Coverage</th><th>Evidence</th></tr></thead>
+  <tbody>
+    <tr><td>Injection (SQL, command)</td><td><span class="tag" style="background:#1a7f37;">Strong</span></td><td>Error-/time-based oracle</td></tr>
+    <tr><td>Cross-site scripting (CWE-79)</td><td><span class="tag" style="background:#1a7f37;">Strong</span></td><td>Reflected/stored payload execution</td></tr>
+    <tr><td>Security misconfiguration</td><td><span class="tag" style="background:#1a7f37;">Strong</span></td><td>Missing headers, directory listing, verbose errors</td></tr>
+    <tr><td>Broken authentication / session</td><td><span class="tag" style="background:#1a7f37;">Strong</span></td><td>Weak cookie flags, session fixation</td></tr>
+    <tr><td>TLS / transport, cookie security, headers</td><td><span class="tag" style="background:#1a7f37;">Strong</span></td><td>Passive-scan findings</td></tr>
+    <tr><td>SSRF (CWE-918)</td><td><span class="tag" style="background:#9a6a00;">Partial</span></td><td>Out-of-band interaction detection</td></tr>
+    <tr><td>Broken access control</td><td><span class="tag" style="background:#9a6a00;">Partial</span></td><td>Forced browsing; object-level logic limited</td></tr>
+    <tr><td>Business-logic flaws</td><td><span class="tag" style="background:#c0392b;">Weak</span></td><td>Requires human reasoning</td></tr>
+    <tr><td>Vulnerable components</td><td><span class="tag" style="background:#c0392b;">Weak</span></td><td>SCA is the correct control</td></tr>
+  </tbody>
+</table>
+
+<h2 id="s5"><span class="n">5</span>Worked example &mdash; reflected XSS (CWE-79)</h2>
+<p>The scanner identifies a search parameter, submits a script payload, and inspects the response for unencoded reflection.</p>
+<pre><span class="c"># Attack request</span>
+GET /search?q=<span class="bad">&lt;script&gt;alert(1)&lt;/script&gt;</span> HTTP/1.1
+Host: shop.example.com
+
+<span class="c"># Response (excerpt)</span>
+HTTP/1.1 200 OK
+Content-Type: text/html
+...
+&lt;h2&gt;Results for: <span class="bad">&lt;script&gt;alert(1)&lt;/script&gt;</span>&lt;/h2&gt;   <span class="c"># reflected unencoded &rarr; executes in-browser</span></pre>
+<table>
+  <tbody>
+    <tr><td style="width:22%"><strong>Weakness</strong></td><td>CWE-79 &mdash; Reflected Cross-Site Scripting <span class="tag" style="background:#c0392b;">High</span></td></tr>
+    <tr><td><strong>Location</strong></td><td><code>GET /search</code>, parameter <code>q</code></td></tr>
+    <tr><td><strong>Evidence</strong></td><td>Payload reflected into HTML response body without output encoding</td></tr>
+    <tr><td><strong>Remediation</strong></td><td>Context-aware output encoding; Content-Security-Policy as defence in depth</td></tr>
+  </tbody>
+</table>
+<p>DAST reports the reproducing request. It identifies the vulnerable endpoint and parameter but not the responsible source line &mdash; root-cause localization is a SAST/code-review task.</p>
+
+<h2 id="s6"><span class="n">6</span>Scan configuration &amp; coverage</h2>
+<ul>
+  <li><strong>Authenticated vs. unauthenticated</strong> &mdash; most of an application's surface and risk is behind authentication. The scanner must log in, maintain a session, and detect/avoid logout; a scan that cannot authenticate tests only public endpoints.</li>
+  <li><strong>Crawl completeness</strong> &mdash; undiscovered endpoints are untested (the primary false-negative source). Seed the crawler with URLs, an OpenAPI/GraphQL schema, or a recorded session; use a JS-capable crawler for SPAs.</li>
+  <li><strong>Scope &amp; safety</strong> &mdash; constrain target hosts/paths; set rate limits; exclude destructive operations.</li>
+  <li><strong>Policy</strong> &mdash; select active vs. passive rules per environment.</li>
+</ul>
+
+<h2 id="s7"><span class="n">7</span>CI/CD integration</h2>
+<table>
+  <thead><tr><th style="width:26%">Mode</th><th>Function</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Staging scan on deploy</strong></td><td>Automated authenticated scan against each build deployed to a test environment.</td></tr>
+    <tr><td><strong>Scheduled deep scan</strong></td><td>Longer scans run off the critical path (nightly/weekly).</td></tr>
+    <tr><td><strong>Pre-production gate</strong></td><td>Block promotion to production on confirmed high/critical findings.</td></tr>
+    <tr><td><strong>Manual / interactive</strong></td><td>A tester drives an intercepting proxy to extend and validate automated results.</td></tr>
+  </tbody>
+</table>
+<p>Apply <strong>risk-based remediation</strong>: remediation windows (SLAs) tied to severity, with confirmed findings owned and tracked. Gate on confirmed high-confidence findings to avoid blocking releases on noise.</p>
+
+<h2 id="s8"><span class="n">8</span>Limitations</h2>
+<ul>
+  <li><strong>Coverage-bound false negatives</strong> &mdash; only tested what it reached and crawled; undiscovered endpoints are silently untested.</li>
+  <li><strong>No source localization</strong> &mdash; reports URL/parameter, not the responsible code.</li>
+  <li><strong>Late stage</strong> &mdash; requires a deployed, working environment; fixes are more expensive than at code stage.</li>
+  <li><strong>Operational risk</strong> &mdash; active scanning can disrupt the target and generate junk data; requires authorization and scoping.</li>
+  <li><strong>Weak on business logic</strong> &mdash; cannot reason about intended behaviour; complemented by manual testing.</li>
+</ul>
+
+<h2 id="s9"><span class="n">9</span>Tooling</h2>
+<table>
+  <thead><tr><th style="width:24%">Category</th><th style="width:40%">Tools</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td>Open-source</td><td>OWASP ZAP</td><td>Proxy + automated scanner; CI integration; the standard free DAST.</td></tr>
+    <tr><td>Manual / interactive</td><td>Burp Suite Professional</td><td>Intercepting proxy + scanner; the de-facto web pentest tool.</td></tr>
+    <tr><td>Commercial scanners</td><td>Invicti, Acunetix, Rapid7 InsightAppSec/AppSpider, HCL AppScan, OpenText Fortify WebInspect</td><td>Proof-based scanning, broad coverage, enterprise governance.</td></tr>
+    <tr><td>Platform / cloud &amp; API-first</td><td>Qualys WAS, Tenable WAS, StackHawk, Snyk API &amp; Web (Probely)</td><td>CI-native, API/GraphQL focus, developer workflow.</td></tr>
+  </tbody>
+</table>
+<p>Selection criteria: crawl and authentication quality (session handling, SPA/API support); proof-based validation and false-positive rate on your own application; CI/CD and ticketing integration; scope and rate-limit controls; reporting suitable for audit.</p>
+
+<h2 id="s10"><span class="n">10</span>Operational best practices</h2>
+<ul>
+  <li>Obtain written authorization and define scope before any active scan.</li>
+  <li>Configure authenticated scanning; verify the session holds throughout.</li>
+  <li>Seed the crawler with API/GraphQL schemas and recorded sessions for coverage.</li>
+  <li>Prefer tools that validate/reproduce findings; gate only on confirmed high/critical.</li>
+  <li>Scan against test/staging with disposable data; rate-limit and exclude destructive paths.</li>
+  <li>Assign severity-based remediation SLAs; correlate findings with SAST for root cause.</li>
+  <li>Supplement automated DAST with periodic manual penetration testing for logic flaws.</li>
+</ul>
+
+<h2 id="s11"><span class="n">11</span>Capability coverage</h2>
+<table>
+  <thead><tr><th style="width:30%">Area</th><th>Elements</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Testing surfaces</strong></td><td>Web application; API; GraphQL; SPA/JavaScript; authentication &amp; session; authorization / access control</td></tr>
+    <tr><td><strong>Vulnerability classes</strong></td><td>OWASP Top 10; OWASP API Security Top 10; injection; XSS; SSRF; security misconfiguration; TLS/HTTPS; cookie security; HTTP security headers; file upload/download; CORS; business logic</td></tr>
+    <tr><td><strong>Scan operations</strong></td><td>Authenticated &amp; unauthenticated scanning; scan configuration &amp; coverage; false-positive management; vulnerability validation / proof of concept</td></tr>
+    <tr><td><strong>Program &amp; governance</strong></td><td>CI/CD integration; risk-based remediation / SLA</td></tr>
+  </tbody>
+</table>
+<p class="lede" style="font-size:9.5pt;">In a mature programme DAST is correlated with SAST, SCA and manual testing. Adjacent capabilities &mdash; API security, cloud security, container/Kubernetes security, IaC security, software supply-chain security, vulnerability management, security architecture and DevSecOps &mdash; are tracked as their own areas.</p>
+
+<h2 id="s12"><span class="n">12</span>Terminology &amp; references</h2>
+<div class="cols">
+  <div>
+    <h3>Terminology</h3>
+    <ul style="font-size:9.3pt;">
+      <li><strong>Black-box</strong> &mdash; testing with no internal visibility.</li>
+      <li><strong>Attack surface</strong> &mdash; the set of reachable, interactable inputs.</li>
+      <li><strong>Crawling / spidering</strong> &mdash; automated discovery of endpoints.</li>
+      <li><strong>Passive vs. active scan</strong> &mdash; observe traffic vs. inject payloads.</li>
+      <li><strong>Fuzzing</strong> &mdash; sending many payload variations to an input.</li>
+      <li><strong>Oracle</strong> &mdash; the response signal confirming a payload worked.</li>
+      <li><strong>Proof-based scanning</strong> &mdash; reproducing a finding before reporting.</li>
+      <li><strong>Authenticated scan</strong> &mdash; scanning with a valid session.</li>
+    </ul>
+  </div>
+  <div>
+    <h3>References</h3>
+    <ul class="ref">
+      <li>OWASP Application Security Verification Standard (ASVS)</li>
+      <li>OWASP Web Security Testing Guide (WSTG)</li>
+      <li>OWASP Top 10</li>
+      <li>OWASP API Security Top 10</li>
+      <li>MITRE CWE</li>
+      <li>NIST SP 800-218 (SSDF)</li>
+    </ul>
+  </div>
+</div>
+
+<footer>Dynamic Application Security Testing &mdash; technique reference. Standards and tool names are cited for identification only. Document 2 of the application-security reference set.</footer>
+
+</div>
+</body>
+</html>

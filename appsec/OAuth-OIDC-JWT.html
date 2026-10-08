@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OAuth 2.0, OpenID Connect & JWT</title>
+<style>
+  :root{
+    --ink:#15181d; --ink2:#3d434d; --muted:#6b7280;
+    --line:#e4e7eb; --rule:#cfd4da; --surface:#ffffff; --plane:#f6f7f9;
+    --accent:#1f4e79; --accent2:#2d6ca8;
+    --note:#1f4e79; --caution:#9a6a00; --warn-bg:#fbf4e6;
+    --code-bg:#1b1f26; --code-ink:#e6e9ee; --ok:#1a7f37; --bad:#c0392b;
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-print-color-adjust:exact; print-color-adjust:exact;}
+  body{margin:0; color:var(--ink); background:var(--plane); font-family:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif; font-size:10.4pt; line-height:1.52;}
+  .doc{max-width:200mm; margin:0 auto; background:var(--surface); padding:0 18mm 16mm; box-shadow:0 1px 16px rgba(0,0,0,.06);}
+  @media screen{ body{padding:8mm 0;} }
+  @page{ size:A4; margin:18mm 16mm; }
+  @media print{ .doc{max-width:none; margin:0; padding:0; box-shadow:none;} }
+  h1,h2,h3{font-weight:600; color:var(--ink); line-height:1.25;}
+  h2{font-size:14.5pt; margin:9mm 0 2.5mm; padding-top:2mm; color:var(--accent); border-top:2px solid var(--accent);}
+  h2 .n{color:var(--accent2); font-weight:700; margin-right:2mm;}
+  h3{font-size:11.2pt; margin:5mm 0 1.5mm; color:var(--ink);}
+  p{margin:0 0 2.6mm;} a{color:var(--accent2); text-decoration:none;}
+  ul,ol{margin:0 0 2.8mm; padding-left:5.5mm;} li{margin:0 0 1.1mm;}
+  strong{font-weight:600;} code{font-family:"Cascadia Code",Consolas,monospace; font-size:9pt; background:#eef1f4; padding:.2mm 1.2mm; border-radius:2px;}
+  .lede{font-size:10.6pt; color:var(--ink2);}
+  header.title{border-bottom:3px solid var(--accent); padding:14mm 0 6mm; margin-bottom:2mm;}
+  header.title .cat{font-size:8.5pt; letter-spacing:.18em; text-transform:uppercase; color:var(--accent2); font-weight:700;}
+  header.title h1{font-size:23pt; margin:3mm 0 2mm; letter-spacing:-.3pt; color:var(--ink);}
+  header.title .scope{font-size:11pt; color:var(--ink2); max-width:155mm;}
+  header.title .meta{margin-top:5mm; font-size:8.6pt; color:var(--muted); display:flex; gap:7mm; flex-wrap:wrap;}
+  header.title .meta b{color:var(--ink2); font-weight:600;}
+  .toc{background:var(--plane); border:1px solid var(--line); border-radius:4px; padding:4mm 6mm; margin:5mm 0 2mm; columns:2; column-gap:10mm; font-size:9.3pt;}
+  .toc a{display:block; color:var(--ink2); padding:.8mm 0; break-inside:avoid;}
+  .toc a .n{color:var(--accent2); font-weight:600; display:inline-block; width:6mm;}
+  table{width:100%; border-collapse:collapse; font-size:9.1pt; margin:2.5mm 0 4mm;}
+  caption{caption-side:top; text-align:left; font-size:8.6pt; color:var(--muted); margin-bottom:1.5mm; font-style:italic;}
+  th,td{text-align:left; padding:2.1mm 2.6mm; border:1px solid var(--line); vertical-align:top;}
+  thead th{background:var(--accent); color:#fff; font-weight:600; font-size:8.5pt; letter-spacing:.02em; border-color:var(--accent);}
+  tbody tr:nth-child(even){background:var(--plane);}
+  td code, th code{background:#eef1f4;}
+  pre{background:var(--code-bg); color:var(--code-ink); border-radius:4px; padding:4mm 5mm; font-family:"Cascadia Code",Consolas,monospace; font-size:8.6pt; line-height:1.5; margin:2.5mm 0; white-space:pre-wrap; word-break:break-word;}
+  pre .c{color:#8b94a3;} pre .k{color:#7cc5ff;} pre .s{color:#9ee493;} pre .f{color:#f0c674;} pre .m{color:#e3a7cf;} pre .bad{color:#ff8f8f;} pre .ok{color:#8ce39a;}
+  .note{border-left:3px solid var(--note); background:#eef3f9; padding:3mm 4mm; margin:3mm 0; font-size:9.6pt; border-radius:0 3px 3px 0;}
+  .note.caution{border-color:var(--caution); background:var(--warn-bg);}
+  .note .lab{font-weight:700; color:var(--note); text-transform:uppercase; font-size:8pt; letter-spacing:.06em; margin-right:1.5mm;}
+  .note.caution .lab{color:var(--caution);}
+  .cols{display:grid; grid-template-columns:1fr 1fr; gap:6mm;}
+  .tag{display:inline-block; font-size:7.6pt; font-weight:700; padding:.5mm 1.8mm; border-radius:2px; color:#fff; vertical-align:middle;}
+  .ref{font-size:9pt;} .ref li{margin-bottom:1.6mm;}
+  footer{margin-top:9mm; padding-top:3mm; border-top:1px solid var(--line); font-size:8.2pt; color:var(--muted);}
+  h2{break-after:avoid;} table,pre,.note{break-inside:avoid;}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<header class="title">
+  <div class="cat">Identity &amp; Access &middot; Protocol Reference</div>
+  <h1>OAuth 2.0, OpenID Connect &amp; JWT</h1>
+  <div class="scope">Three distinct specifications: OAuth 2.0 (delegated authorization), OpenID Connect (authentication on top of OAuth), and JSON Web Token (a token format). Covers roles, the Authorization Code + PKCE flow, token types, JWT structure and validation, security pitfalls, standards and tooling.</div>
+  <div class="meta"><span><b>Domain</b> Identity &amp; access management</span><span><b>Core specs</b> RFC 6749, 7636, 7519, 9700; OIDC Core</span><span><b>Baseline</b> OAuth 2.1 (PKCE mandatory)</span></div>
+</header>
+
+<nav class="toc">
+  <a href="#s1"><span class="n">1</span>The three specifications</a>
+  <a href="#s2"><span class="n">2</span>Roles</a>
+  <a href="#s3"><span class="n">3</span>Authorization Code + PKCE</a>
+  <a href="#s4"><span class="n">4</span>Token types</a>
+  <a href="#s5"><span class="n">5</span>Grant types</a>
+  <a href="#s6"><span class="n">6</span>JWT structure</a>
+  <a href="#s7"><span class="n">7</span>JWT validation</a>
+  <a href="#s8"><span class="n">8</span>Security pitfalls</a>
+  <a href="#s9"><span class="n">9</span>Operational constraints</a>
+  <a href="#s10"><span class="n">10</span>Tooling &amp; providers</a>
+  <a href="#s11"><span class="n">11</span>Best practices</a>
+  <a href="#s12"><span class="n">12</span>Terminology &amp; references</a>
+</nav>
+
+<h2 id="s1"><span class="n">1</span>The three specifications</h2>
+<p>These are frequently conflated but address different concerns. Two are <em>purposes</em>; one is a <em>format</em>.</p>
+<table>
+  <thead><tr><th style="width:22%">Specification</th><th style="width:24%">Concern</th><th>Function</th></tr></thead>
+  <tbody>
+    <tr><td><strong>OAuth 2.0</strong> (RFC 6749)</td><td>Authorization (AuthZ)</td><td>Delegated, scoped access to a resource on a user's behalf without sharing credentials. Produces an <strong>access token</strong>.</td></tr>
+    <tr><td><strong>OpenID Connect</strong></td><td>Authentication (AuthN)</td><td>Identity layer on top of OAuth 2.0; establishes who the user is. Produces an <strong>ID token</strong>.</td></tr>
+    <tr><td><strong>JWT</strong> (RFC 7519)</td><td>Token format</td><td>A signed, compact container for claims. The format OIDC ID tokens use and OAuth access tokens may use; also used independently.</td></tr>
+  </tbody>
+</table>
+<p>OIDC reuses OAuth's flows and adds the ID token and a <code>userinfo</code> endpoint. A common error is using an OAuth <em>access token</em> for authentication (determining identity); that is OIDC's purpose, not OAuth's.</p>
+
+<h2 id="s2"><span class="n">2</span>Roles</h2>
+<table>
+  <thead><tr><th style="width:28%">Role</th><th>Responsibility</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Resource owner</strong></td><td>The user who owns the data/account.</td></tr>
+    <tr><td><strong>Client</strong></td><td>The application requesting access.</td></tr>
+    <tr><td><strong>Authorization server</strong></td><td>Authenticates the user and issues tokens (the identity provider).</td></tr>
+    <tr><td><strong>Resource server</strong></td><td>The API that holds the data and accepts access tokens.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="s3"><span class="n">3</span>Authorization Code flow with PKCE</h2>
+<p>OAuth 2.1 consolidates current best practice on a single flow for user-facing clients (web, SPA, mobile): the <strong>Authorization Code flow with PKCE</strong> (Proof Key for Code Exchange, RFC 7636).</p>
+<ol>
+  <li>Client generates a <code>code_verifier</code> and its hash, <code>code_challenge</code>.</li>
+  <li>Client redirects the user to the authorization server's <code>/authorize</code> endpoint with <code>client_id</code>, <code>redirect_uri</code>, <code>scope</code>, <code>state</code>, and <code>code_challenge</code>.</li>
+  <li>User authenticates at the authorization server and consents.</li>
+  <li>Authorization server redirects back to <code>redirect_uri</code> with a short-lived authorization <code>code</code> and the <code>state</code>.</li>
+  <li>Client verifies <code>state</code>, then POSTs to <code>/token</code> with the <code>code</code> and <code>code_verifier</code>.</li>
+  <li>Authorization server validates the verifier against the challenge and returns an access token, a refresh token, and (for OIDC) an ID token.</li>
+  <li>Client validates the ID token; calls the resource server with the access token.</li>
+</ol>
+<div class="note"><span class="lab">Note</span>PKCE binds the authorization code to the client that initiated the flow. An intercepted code cannot be exchanged without the matching <code>code_verifier</code>. OAuth 2.1 makes PKCE mandatory for all clients. The user's credentials are entered only at the authorization server; the client never receives them.</div>
+
+<h2 id="s4"><span class="n">4</span>Token types</h2>
+<table>
+  <thead><tr><th style="width:18%">Token</th><th style="width:24%">Purpose</th><th>Properties</th></tr></thead>
+  <tbody>
+    <tr><td><strong>ID token</strong></td><td>Authentication (OIDC)</td><td>Always a JWT; consumed by the client to establish identity; not for calling APIs.</td></tr>
+    <tr><td><strong>Access token</strong></td><td>Authorization (OAuth)</td><td>Presented to the resource server; short-lived (minutes); opaque or JWT.</td></tr>
+    <tr><td><strong>Refresh token</strong></td><td>Token renewal</td><td>Long-lived; exchanged for new access tokens without re-authentication; must be stored securely.</td></tr>
+  </tbody>
+</table>
+<p>Crossing token purposes &mdash; sending an ID token to an API, or using an access token to identify the user &mdash; is a common defect.</p>
+
+<h2 id="s5"><span class="n">5</span>Grant types</h2>
+<table>
+  <thead><tr><th style="width:34%">Grant</th><th style="width:16%">Status</th><th>Use</th></tr></thead>
+  <tbody>
+    <tr><td>Authorization Code + PKCE</td><td><span class="tag" style="background:#1a7f37;">Current</span></td><td>All user-facing clients (web, SPA, mobile).</td></tr>
+    <tr><td>Client Credentials</td><td><span class="tag" style="background:#1a7f37;">Current</span></td><td>Machine-to-machine (no user).</td></tr>
+    <tr><td>Device Authorization</td><td><span class="tag" style="background:#1a7f37;">Current</span></td><td>Input-constrained devices.</td></tr>
+    <tr><td>Implicit</td><td><span class="tag" style="background:#c0392b;">Removed</span></td><td>Removed in OAuth 2.1 (token leakage via URL fragment).</td></tr>
+    <tr><td>Resource Owner Password (ROPC)</td><td><span class="tag" style="background:#c0392b;">Removed</span></td><td>Removed (client handles raw credentials).</td></tr>
+  </tbody>
+</table>
+
+<h2 id="s6"><span class="n">6</span>JWT structure</h2>
+<p>A JWT is three Base64URL-encoded segments separated by dots: <code>header.payload.signature</code>. The header and payload are encoded, not encrypted &mdash; readable by any holder.</p>
+<pre><span class="c">// header</span>
+{ <span class="m">"alg"</span>: <span class="s">"RS256"</span>, <span class="m">"kid"</span>: <span class="s">"abc123"</span> }
+<span class="c">// payload (claims)</span>
+{
+  <span class="m">"iss"</span>: <span class="s">"https://issuer.example.com"</span>,   <span class="c">// issuer</span>
+  <span class="m">"aud"</span>: <span class="s">"client-id"</span>,                    <span class="c">// audience (intended recipient)</span>
+  <span class="m">"sub"</span>: <span class="s">"1076915003"</span>,                   <span class="c">// subject (user id)</span>
+  <span class="m">"exp"</span>: 1733600000,                      <span class="c">// expiry</span>
+  <span class="m">"nonce"</span>: <span class="s">"a7f3..."</span>                     <span class="c">// binds token to a login request (OIDC)</span>
+}
+<span class="c">// signature: over header + payload, verified with the issuer's public key</span></pre>
+<div class="note caution"><span class="lab">Caution</span>A JWT is signed, not encrypted, by default. Do not place secrets in the payload; transmit only over TLS.</div>
+
+<h2 id="s7"><span class="n">7</span>JWT validation</h2>
+<p>Accepting a JWT without full validation is the root cause of most token-based account-takeover defects. A compliant validator must:</p>
+<ol>
+  <li>Verify the <strong>signature</strong> using the issuer's current public key, obtained from its <strong>JWKS</strong> endpoint (cache keys; handle <code>kid</code> rotation).</li>
+  <li>Reject <code>alg: none</code> and pin the expected algorithm.</li>
+  <li>Validate <code>iss</code> (expected issuer), <code>aud</code> (this client/API), and <code>exp</code> (not expired).</li>
+  <li>Validate <code>nonce</code> for OIDC authentication flows.</li>
+</ol>
+
+<h2 id="s8"><span class="n">8</span>Security pitfalls</h2>
+<table>
+  <thead><tr><th style="width:32%">Pitfall</th><th style="width:34%">Defect</th><th>Control</th></tr></thead>
+  <tbody>
+    <tr><td>Signature not verified</td><td>Forged claims accepted</td><td>Verify signature against issuer JWKS</td></tr>
+    <tr><td><code>alg: none</code></td><td>Unsigned token accepted</td><td>Reject <code>none</code>; pin algorithm</td></tr>
+    <tr><td>Missing <code>aud</code>/<code>iss</code>/<code>exp</code> checks</td><td>Token reuse / expired token accepted</td><td>Validate all claims</td></tr>
+    <tr><td>Open / loose <code>redirect_uri</code></td><td>Code redirected to attacker (takeover)</td><td>Exact-match registered URIs</td></tr>
+    <tr><td>Missing <code>state</code></td><td>CSRF on the authorization flow</td><td>Random <code>state</code>, verified on return</td></tr>
+    <tr><td>Authorization-code interception</td><td>Code exchanged by attacker</td><td>PKCE</td></tr>
+    <tr><td>Tokens in <code>localStorage</code> / URLs</td><td>Theft via XSS; leakage via history/logs</td><td>Secure <code>HttpOnly</code> cookies; never tokens in URLs</td></tr>
+    <tr><td>Over-broad scopes / long-lived tokens</td><td>Excessive access on theft</td><td>Least-privilege scopes; short-lived access tokens</td></tr>
+  </tbody>
+</table>
+
+<h2 id="s9"><span class="n">9</span>Operational constraints</h2>
+<p><strong>JWT revocation:</strong> a self-contained signed token is verifiable offline without contacting the issuer &mdash; which also means it cannot be easily revoked before expiry. Mitigations: keep access tokens short-lived (minutes) and revoke via refresh-token invalidation; or use token introspection / a denylist where immediate revocation is required. This trade-off (offline verification vs. revocation) is inherent to stateless tokens.</p>
+
+<h2 id="s10"><span class="n">10</span>Tooling &amp; providers</h2>
+<table>
+  <thead><tr><th style="width:26%">Category</th><th>Examples</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Identity providers</strong></td><td>Microsoft Entra ID, Okta/Auth0, Google Identity, AWS Cognito, Ping Identity, ForgeRock, Keycloak (open-source)</td></tr>
+    <tr><td><strong>Client libraries</strong></td><td>Microsoft MSAL, AppAuth, <code>openid-client</code>, Spring Security, Passport.js</td></tr>
+    <tr><td><strong>JWT handling</strong></td><td>Per-language JWT libraries (validate, do not hand-roll); jwt.io for inspection</td></tr>
+    <tr><td><strong>High-assurance profile</strong></td><td>FAPI (Financial-grade API)</td></tr>
+  </tbody>
+</table>
+
+<h2 id="s11"><span class="n">11</span>Best practices</h2>
+<ul>
+  <li>Use a vetted authorization server and client library; do not implement the protocol from scratch.</li>
+  <li>Use Authorization Code + PKCE for user-facing clients; Client Credentials for machine-to-machine; avoid removed grants.</li>
+  <li>Validate every token fully (signature via JWKS, <code>iss</code>, <code>aud</code>, <code>exp</code>, <code>nonce</code>); reject <code>alg: none</code>.</li>
+  <li>Exact-match <code>redirect_uri</code>; use and verify <code>state</code>; request least-privilege scopes.</li>
+  <li>Keep access tokens short-lived; store tokens in secure, <code>HttpOnly</code> cookies; never in URLs.</li>
+  <li>Transport exclusively over TLS; do not place sensitive data in JWT payloads.</li>
+</ul>
+
+<h2 id="s12"><span class="n">12</span>Terminology &amp; references</h2>
+<div class="cols">
+  <div>
+    <h3>Terminology</h3>
+    <ul style="font-size:9.3pt;">
+      <li><strong>AuthN / AuthZ</strong> &mdash; authentication / authorization.</li>
+      <li><strong>Scope</strong> &mdash; a named permission requested by a client.</li>
+      <li><strong>Claim</strong> &mdash; a field within a token.</li>
+      <li><strong>PKCE</strong> &mdash; proof key for code exchange.</li>
+      <li><strong>JWKS</strong> &mdash; issuer's published public-key set.</li>
+      <li><strong>Nonce</strong> &mdash; single-use value binding a token to a login.</li>
+      <li><strong>FAPI</strong> &mdash; financial-grade API security profile.</li>
+    </ul>
+  </div>
+  <div>
+    <h3>References</h3>
+    <ul class="ref">
+      <li>RFC 6749 &mdash; OAuth 2.0 Authorization Framework</li>
+      <li>RFC 7636 &mdash; PKCE</li>
+      <li>RFC 7519 &mdash; JSON Web Token</li>
+      <li>RFC 9700 &mdash; OAuth 2.0 Security Best Current Practice</li>
+      <li>OpenID Connect Core 1.0</li>
+      <li>OAuth 2.1 (consolidation draft); OWASP ASVS</li>
+    </ul>
+  </div>
+</div>
+
+<footer>OAuth 2.0, OpenID Connect &amp; JWT &mdash; protocol reference. Standards and product names are cited for identification only. Document 7 of the application-security reference set.</footer>
+
+</div>
+</body>
+</html>

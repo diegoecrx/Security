@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Static Application Security Testing (SAST)</title>
+<style>
+  :root{
+    --ink:#15181d; --ink2:#3d434d; --muted:#6b7280;
+    --line:#e4e7eb; --rule:#cfd4da;
+    --surface:#ffffff; --plane:#f6f7f9;
+    --accent:#1f4e79; --accent2:#2d6ca8;
+    --note:#1f4e79; --caution:#9a6a00; --warn-bg:#fbf4e6;
+    --code-bg:#1b1f26; --code-ink:#e6e9ee;
+    --ok:#1a7f37; --bad:#c0392b;
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-print-color-adjust:exact; print-color-adjust:exact;}
+  body{margin:0; color:var(--ink); background:var(--plane);
+    font-family:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+    font-size:10.4pt; line-height:1.52;}
+  .doc{max-width:200mm; margin:0 auto; background:var(--surface);
+    padding:0 18mm 16mm; box-shadow:0 1px 16px rgba(0,0,0,.06);}
+  @media screen{ body{padding:8mm 0;} }
+  @page{ size:A4; margin:18mm 16mm; }
+  @media print{ .doc{max-width:none; margin:0; padding:0; box-shadow:none;} }
+
+  h1,h2,h3{font-weight:600; color:var(--ink); line-height:1.25;}
+  h2{font-size:14.5pt; margin:9mm 0 2.5mm; padding-top:2mm; color:var(--accent);
+    border-top:2px solid var(--accent);}
+  h2 .n{color:var(--accent2); font-weight:700; margin-right:2mm;}
+  h3{font-size:11.2pt; margin:5mm 0 1.5mm; color:var(--ink);}
+  p{margin:0 0 2.6mm;} a{color:var(--accent2); text-decoration:none;}
+  ul,ol{margin:0 0 2.8mm; padding-left:5.5mm;} li{margin:0 0 1.1mm;}
+  strong{font-weight:600;} code{font-family:"Cascadia Code",Consolas,monospace;
+    font-size:9pt; background:#eef1f4; padding:.2mm 1.2mm; border-radius:2px;}
+  .lede{font-size:10.6pt; color:var(--ink2);}
+
+  /* header */
+  header.title{border-bottom:3px solid var(--accent); padding:14mm 0 6mm; margin-bottom:2mm;}
+  header.title .cat{font-size:8.5pt; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--accent2); font-weight:700;}
+  header.title h1{font-size:25pt; margin:3mm 0 2mm; letter-spacing:-.3pt; color:var(--ink);}
+  header.title .scope{font-size:11pt; color:var(--ink2); max-width:150mm;}
+  header.title .meta{margin-top:5mm; font-size:8.6pt; color:var(--muted);
+    display:flex; gap:7mm; flex-wrap:wrap;}
+  header.title .meta b{color:var(--ink2); font-weight:600;}
+
+  /* TOC */
+  .toc{background:var(--plane); border:1px solid var(--line); border-radius:4px;
+    padding:4mm 6mm; margin:5mm 0 2mm; columns:2; column-gap:10mm; font-size:9.3pt;}
+  .toc a{display:block; color:var(--ink2); padding:.8mm 0; break-inside:avoid;}
+  .toc a .n{color:var(--accent2); font-weight:600; display:inline-block; width:6mm;}
+
+  table{width:100%; border-collapse:collapse; font-size:9.1pt; margin:2.5mm 0 4mm;}
+  caption{caption-side:top; text-align:left; font-size:8.6pt; color:var(--muted);
+    margin-bottom:1.5mm; font-style:italic;}
+  th,td{text-align:left; padding:2.1mm 2.6mm; border:1px solid var(--line); vertical-align:top;}
+  thead th{background:var(--accent); color:#fff; font-weight:600; font-size:8.5pt;
+    letter-spacing:.02em; border-color:var(--accent);}
+  tbody tr:nth-child(even){background:var(--plane);}
+  td code, th code{background:#eef1f4;}
+
+  pre{background:var(--code-bg); color:var(--code-ink); border-radius:4px;
+    padding:4mm 5mm; font-family:"Cascadia Code",Consolas,monospace; font-size:8.6pt;
+    line-height:1.5; margin:2.5mm 0; white-space:pre-wrap; word-break:break-word;}
+  pre .c{color:#8b94a3;} pre .k{color:#7cc5ff;} pre .s{color:#9ee493;}
+  pre .f{color:#f0c674;} pre .bad{color:#ff8f8f;} pre .ok{color:#8ce39a;}
+
+  .note{border-left:3px solid var(--note); background:#eef3f9; padding:3mm 4mm;
+    margin:3mm 0; font-size:9.6pt; border-radius:0 3px 3px 0;}
+  .note.caution{border-color:var(--caution); background:var(--warn-bg);}
+  .note .lab{font-weight:700; color:var(--note); text-transform:uppercase;
+    font-size:8pt; letter-spacing:.06em; margin-right:1.5mm;}
+  .note.caution .lab{color:var(--caution);}
+  .cols{display:grid; grid-template-columns:1fr 1fr; gap:6mm;}
+  .tag{display:inline-block; font-size:7.6pt; font-weight:700; padding:.5mm 1.8mm;
+    border-radius:2px; color:#fff; vertical-align:middle;}
+  .fig{border:1px solid var(--line); border-radius:4px; padding:4mm; margin:3mm 0;}
+  figcaption{font-size:8.4pt; color:var(--muted); margin-top:2mm;}
+  .ref{font-size:9pt;} .ref li{margin-bottom:1.6mm;}
+  footer{margin-top:9mm; padding-top:3mm; border-top:1px solid var(--line);
+    font-size:8.2pt; color:var(--muted);}
+  h2{break-after:avoid;} table,pre,.fig,.note{break-inside:avoid;}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<header class="title">
+  <div class="cat">Application Security &middot; Technique Reference</div>
+  <h1>Static Application Security Testing</h1>
+  <div class="scope">White-box analysis of application source code, bytecode or binaries &mdash; without executing them &mdash; to identify security defects. Covers mechanism, detection techniques, vulnerability coverage, SDLC integration, limitations, tooling and operational practice.</div>
+  <div class="meta"><span><b>Abbreviation</b> SAST</span><span><b>Class</b> Static / white-box</span><span><b>SDLC stage</b> Code &amp; build</span><span><b>Primary standards</b> OWASP ASVS, CWE, NIST SP&nbsp;800-218 (SSDF)</span></div>
+</header>
+
+<nav class="toc">
+  <a href="#s1"><span class="n">1</span>Definition &amp; scope</a>
+  <a href="#s2"><span class="n">2</span>Analysis mechanism</a>
+  <a href="#s3"><span class="n">3</span>Detection techniques</a>
+  <a href="#s4"><span class="n">4</span>Vulnerability coverage</a>
+  <a href="#s5"><span class="n">5</span>Rules &amp; tuning</a>
+  <a href="#s6"><span class="n">6</span>Worked example</a>
+  <a href="#s7"><span class="n">7</span>SDLC / CI-CD integration</a>
+  <a href="#s8"><span class="n">8</span>Limitations</a>
+  <a href="#s9"><span class="n">9</span>Tooling</a>
+  <a href="#s10"><span class="n">10</span>Operational best practices</a>
+  <a href="#s11"><span class="n">11</span>Capability coverage</a>
+  <a href="#s12"><span class="n">12</span>Terminology &amp; references</a>
+</nav>
+
+<h2 id="s1"><span class="n">1</span>Definition &amp; scope</h2>
+<p>SAST analyzes an application's source code, bytecode or compiled binary <strong>statically</strong> &mdash; the artifact is inspected, not run. Because the analyzer has full visibility into internal structure (all functions, branches and paths), it is a <strong>white-box</strong> technique. It identifies security-relevant defects in first-party code: injection, unsafe data handling, weak cryptography, hardcoded secrets, unsafe memory operations and similar classes, located at a specific file and line.</p>
+<p>SAST operates at the <strong>Code</strong> and <strong>Build</strong> stages of the SDLC and can run before the application is executable. It is a core control in secure-development frameworks (OWASP ASVS verification requirements, OWASP SAMM, NIST SSDF practice PW.8). It is complementary to, not a substitute for, DAST (runtime testing), SCA (third-party components) and secret scanning.</p>
+<table>
+  <caption>SAST in relation to adjacent techniques</caption>
+  <thead><tr><th style="width:14%">Technique</th><th style="width:20%">Target</th><th style="width:14%">Executes app?</th><th>Finds what SAST does not</th></tr></thead>
+  <tbody>
+    <tr><td><strong>SAST</strong></td><td>First-party source/bytecode</td><td>No</td><td>&mdash;</td></tr>
+    <tr><td>DAST</td><td>Running application</td><td>Yes</td><td>Runtime, configuration and deployment defects; exploitability confirmation</td></tr>
+    <tr><td>IAST</td><td>Instrumented running app</td><td>Yes</td><td>Runtime-confirmed data-flow defects</td></tr>
+    <tr><td>SCA</td><td>Third-party dependencies</td><td>No</td><td>Known CVEs and licence risk in open-source components</td></tr>
+  </tbody>
+</table>
+
+<h2 id="s2"><span class="n">2</span>Analysis mechanism</h2>
+<p>A SAST engine constructs a structural model of the program, then reasons over it. The typical pipeline:</p>
+<ol>
+  <li><strong>Lexing &amp; parsing</strong> &mdash; tokenize the source and build an <strong>Abstract Syntax Tree (AST)</strong> representing syntactic structure.</li>
+  <li><strong>Semantic model</strong> &mdash; resolve symbols, types and scopes; build a <strong>control-flow graph (CFG)</strong> per function and a <strong>call graph</strong> across functions.</li>
+  <li><strong>Data-flow analysis</strong> &mdash; track how values propagate through assignments, calls and returns, intra- and inter-procedurally.</li>
+  <li><strong>Taint analysis</strong> &mdash; the core security analysis: determine whether untrusted input reaches a sensitive operation without adequate neutralization.</li>
+  <li><strong>Rule evaluation &amp; reporting</strong> &mdash; match findings against a rule set; emit location, CWE, severity and the data-flow trace.</li>
+</ol>
+<h3>Taint analysis: sources, sinks, sanitizers</h3>
+<table>
+  <thead><tr><th style="width:16%">Term</th><th>Definition</th><th style="width:34%">Examples</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Source</strong></td><td>Point where untrusted/attacker-controllable data enters the program. Data from a source is <em>tainted</em>.</td><td>HTTP parameters, request bodies, headers, file contents, message queues</td></tr>
+    <tr><td><strong>Sink</strong></td><td>Sensitive operation that must not receive tainted data unmodified.</td><td>SQL query execution, OS command, HTML output, file path, deserializer</td></tr>
+    <tr><td><strong>Sanitizer</strong></td><td>Operation that neutralizes taint, making data safe for a given sink.</td><td>Parameterized queries, context-aware output encoding, input validation, allow-listing</td></tr>
+  </tbody>
+</table>
+<p>A finding is raised when a feasible path exists from a source to a sink with no applicable sanitizer on the path. Analysis quality depends on <strong>interprocedural</strong> precision (following taint across function and file boundaries), path/field sensitivity, and the completeness of the source/sink/sanitizer models for the target language and frameworks.</p>
+
+<h2 id="s3"><span class="n">3</span>Detection techniques</h2>
+<table>
+  <thead><tr><th style="width:26%">Technique</th><th style="width:37%">Description</th><th>Trade-off</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Pattern / syntactic matching</strong></td><td>Rules matched against AST shapes or token patterns (e.g. use of a weak hash, a hardcoded credential pattern).</td><td>Fast, low resource; higher false-positive rate; no path reasoning.</td></tr>
+    <tr><td><strong>Data-flow / taint tracking</strong></td><td>Traces tainted values from source to sink across the call graph.</td><td>Higher precision on injection-class defects; heavier, slower; needs accurate models.</td></tr>
+    <tr><td><strong>Control-flow analysis</strong></td><td>Reasons over reachable paths and conditions (e.g. a check that is bypassable on some branch).</td><td>Detects logic/path defects pattern matching misses.</td></tr>
+    <tr><td><strong>Semantic / symbolic</strong></td><td>Constraint-based reasoning over feasible values and paths.</td><td>Highest precision; most expensive; used selectively.</td></tr>
+  </tbody>
+</table>
+<p>Code-quality findings (maintainability, style) are distinct from security findings and should be tracked separately; conflating them dilutes the security signal.</p>
+
+<h2 id="s4"><span class="n">4</span>Vulnerability coverage</h2>
+<p>SAST classifies findings against the <strong>CWE</strong> (Common Weakness Enumeration) taxonomy and maps to the <strong>OWASP Top 10</strong>. Coverage is strong for defects expressed in code structure and data flow, weaker for defects requiring runtime or environmental context.</p>
+<table>
+  <caption>Representative OWASP Top 10 coverage</caption>
+  <thead><tr><th style="width:42%">Category</th><th style="width:16%">Coverage</th><th>Representative CWE / finding</th></tr></thead>
+  <tbody>
+    <tr><td>Injection (SQL, OS command, LDAP)</td><td><span class="tag" style="background:#1a7f37;">Strong</span></td><td>CWE-89, CWE-78, CWE-90</td></tr>
+    <tr><td>Cross-site scripting</td><td><span class="tag" style="background:#1a7f37;">Strong</span></td><td>CWE-79 (unencoded output)</td></tr>
+    <tr><td>Cryptographic failures (insecure crypto)</td><td><span class="tag" style="background:#1a7f37;">Strong</span></td><td>CWE-327, CWE-328, CWE-326</td></tr>
+    <tr><td>Hardcoded secrets</td><td><span class="tag" style="background:#1a7f37;">Strong</span></td><td>CWE-798 (overlaps secret scanning)</td></tr>
+    <tr><td>Input validation / output encoding defects</td><td><span class="tag" style="background:#1a7f37;">Strong</span></td><td>CWE-20, CWE-116</td></tr>
+    <tr><td>Insecure deserialization</td><td><span class="tag" style="background:#1a7f37;">Strong</span></td><td>CWE-502</td></tr>
+    <tr><td>SSRF</td><td><span class="tag" style="background:#9a6a00;">Partial</span></td><td>CWE-918 (tainted URL to request sink)</td></tr>
+    <tr><td>Authentication / authorization flaws</td><td><span class="tag" style="background:#9a6a00;">Partial</span></td><td>Missing checks detectable; policy correctness is not</td></tr>
+    <tr><td>Security misconfiguration</td><td><span class="tag" style="background:#9a6a00;">Partial</span></td><td>Framework config in code only</td></tr>
+    <tr><td>Broken access control (object-level / logic)</td><td><span class="tag" style="background:#c0392b;">Weak</span></td><td>Requires business-logic context</td></tr>
+  </tbody>
+</table>
+
+<h2 id="s5"><span class="n">5</span>Rules &amp; tuning</h2>
+<p>Detection accuracy is governed by the rule set. Rules exist in layers:</p>
+<ul>
+  <li><strong>Built-in rules</strong> &mdash; vendor/community base coverage for common weaknesses.</li>
+  <li><strong>Language-specific rules</strong> &mdash; tuned to a language's idioms and dangerous APIs.</li>
+  <li><strong>Framework-specific rules</strong> &mdash; model the sources, sinks and sanitizers of a framework (e.g. Spring, Django, Express, React) so taint tracking is accurate.</li>
+  <li><strong>Custom rules</strong> &mdash; organization-defined patterns: banned functions, internal sanitizer recognition, mandatory API usage, proprietary sink definitions.</li>
+</ul>
+<h3>False-positive and exception management</h3>
+<p>SAST false-positive rates are non-trivial and must be managed operationally, or developers disengage. Mechanisms:</p>
+<ul>
+  <li><strong>Triage</strong> &mdash; confirm exploitability/validity before assigning remediation.</li>
+  <li><strong>Suppression / exception management</strong> &mdash; durably record a reviewed false positive or an accepted risk (with owner, rationale, and expiry) so it does not re-alert on every scan.</li>
+  <li><strong>Baselining</strong> &mdash; separate pre-existing findings from newly introduced ones so a legacy backlog does not block new work.</li>
+</ul>
+
+<h2 id="s6"><span class="n">6</span>Worked example &mdash; SQL injection (CWE-89)</h2>
+<p>Vulnerable handler (Python). User input reaches a query sink via string concatenation, with no sanitizer on the path:</p>
+<pre><span class="k">def</span> <span class="f">get_user</span>(request):
+    name = request.args.get(<span class="s">"username"</span>)        <span class="c"># source: HTTP parameter (tainted)</span>
+    query = <span class="s">"SELECT * FROM users WHERE name = '"</span> + name + <span class="s">"'"</span>  <span class="bad"># taint propagated</span>
+    <span class="k">return</span> db.<span class="f">execute</span>(query)                     <span class="c"># sink: SQL execution</span></pre>
+<p><strong>Taint path:</strong> <code>request.args.get("username")</code> &rarr; <code>name</code> &rarr; <code>query</code> &rarr; <code>db.execute()</code>, with no parameterization or encoding.</p>
+<table>
+  <tbody>
+    <tr><td style="width:22%"><strong>Weakness</strong></td><td>CWE-89 &mdash; SQL Injection <span class="tag" style="background:#c0392b;">Critical</span></td></tr>
+    <tr><td><strong>Location</strong></td><td>handler, concatenation site and sink line</td></tr>
+    <tr><td><strong>Condition</strong></td><td>Tainted input reaches a SQL sink with no parameterization/encoding</td></tr>
+    <tr><td><strong>Remediation</strong></td><td>Use a parameterized query (prepared statement); data and command sent separately</td></tr>
+  </tbody>
+</table>
+<p>Remediated &mdash; the parameterized API is a recognized sanitizer for the SQL sink, so no path from source to sink remains unneutralized and the finding clears:</p>
+<pre><span class="k">def</span> <span class="f">get_user</span>(request):
+    name = request.args.get(<span class="s">"username"</span>)
+    query = <span class="s">"SELECT * FROM users WHERE name = %s"</span>   <span class="ok"># placeholder, not concatenation</span>
+    <span class="k">return</span> db.<span class="f">execute</span>(query, [name])         <span class="ok"># parameter bound separately</span></pre>
+
+<h2 id="s7"><span class="n">7</span>SDLC / CI-CD integration</h2>
+<table>
+  <thead><tr><th style="width:24%">Integration point</th><th style="width:40%">Function</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><strong>IDE plugin</strong></td><td>Flags findings during editing.</td><td>Earliest feedback; developer-local.</td></tr>
+    <tr><td><strong>Pre-commit / PR scan</strong></td><td>Scans proposed changes; posts findings as review comments.</td><td>Pair with branch protection (required status check).</td></tr>
+    <tr><td><strong>Incremental / changed-code scan</strong></td><td>Analyzes only the diff for speed on PRs.</td><td>Full scans run on a schedule or main branch.</td></tr>
+    <tr><td><strong>CI pipeline scan</strong></td><td>Full or deep scan in the build.</td><td>Enforce a <strong>security gate</strong> on severity threshold.</td></tr>
+    <tr><td><strong>Dashboard / scheduled</strong></td><td>Trend metrics, backlog, SLA tracking.</td><td>Feeds vulnerability-management reporting.</td></tr>
+  </tbody>
+</table>
+<p><strong>Gating:</strong> enforce on high-confidence, high-severity findings first; widen as signal quality improves. Define a <strong>remediation SLA</strong> by severity, and track <strong>severity &amp; prioritization</strong> consistently (CVSS or an internal scheme).</p>
+<div class="note caution"><span class="lab">Caution</span>A gate enforced on a noisy rule set trains developers to bypass it. Tune and baseline before making a check blocking.</div>
+
+<h2 id="s8"><span class="n">8</span>Limitations</h2>
+<ul>
+  <li><strong>False negatives</strong> &mdash; defects outside the rule set, or reached via models the engine does not resolve (reflection, dynamic dispatch, metaprogramming), are missed.</li>
+  <li><strong>No runtime or environmental context</strong> &mdash; configuration, deployment, TLS, and server misconfiguration are out of scope (DAST territory).</li>
+  <li><strong>Business-logic and authorization correctness</strong> &mdash; "a user can act on another user's object" is valid code; SAST cannot judge intent.</li>
+  <li><strong>False positives</strong> &mdash; require triage and suppression workflow; unmanaged, they erode adoption.</li>
+  <li><strong>Performance</strong> &mdash; deep interprocedural analysis is resource-intensive on large codebases; mitigated by incremental scanning.</li>
+  <li><strong>Language/framework support</strong> &mdash; precision varies by engine and target stack.</li>
+</ul>
+
+<h2 id="s9"><span class="n">9</span>Tooling</h2>
+<table>
+  <thead><tr><th style="width:24%">Category</th><th style="width:40%">Tools</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td>Open-source / free</td><td>Semgrep, CodeQL, Bandit (Python), Gosec (Go), ESLint security plugins, SpotBugs/FindSecBugs (Java)</td><td>Strong CI fit; broad language coverage; custom-rule friendly.</td></tr>
+    <tr><td>Enterprise platforms</td><td>Checkmarx, OpenText Fortify, Coverity, Veracode</td><td>Deep data-flow engines, broad language support, governance.</td></tr>
+    <tr><td>Developer / cloud-native</td><td>Snyk Code, GitHub Advanced Security (CodeQL), GitLab SAST, SonarQube</td><td>PR-native UX, platform integration, combined SAST/SCA offerings.</td></tr>
+  </tbody>
+</table>
+<p>Selection criteria: language/framework coverage for the target stack; false-positive rate on a proof-of-concept against your own code; custom-rule capability; IDE/PR/CI integration; incremental-scan support; scalability on the largest repository.</p>
+
+<h2 id="s10"><span class="n">10</span>Operational best practices</h2>
+<ul>
+  <li>Run incrementally on PRs; run full/deep scans on main and on a schedule.</li>
+  <li>Baseline existing findings; gate on <em>newly introduced</em> defects to avoid blocking on legacy debt.</li>
+  <li>Gate on high-severity, high-confidence findings; expand coverage as false positives are tuned out.</li>
+  <li>Author custom rules for internal sanitizers, banned APIs and proprietary sinks to cut false positives and catch organization-specific risk.</li>
+  <li>Maintain a suppression/exception process with owner, justification and expiry; review periodically.</li>
+  <li>Assign severity-based remediation SLAs; report trend (mean time to remediate, open criticals) rather than raw counts.</li>
+  <li>Deliver findings in the IDE and PR, not a separate portal, to preserve developer workflow.</li>
+  <li>Correlate with DAST and SCA; a SAST finding confirmed exploitable by DAST is a priority.</li>
+</ul>
+
+<h2 id="s11"><span class="n">11</span>Capability coverage</h2>
+<p>Scope reference for building or assessing a SAST capability.</p>
+<table>
+  <thead><tr><th style="width:30%">Area</th><th>Elements</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Analysis techniques</strong></td><td>Source-code analysis; taint / data-flow analysis; control-flow analysis; pattern matching</td></tr>
+    <tr><td><strong>Weakness coverage</strong></td><td>OWASP Top 10; CWE coverage; injection; authn/authz flaws; insecure cryptography; input validation / output encoding; secure-coding practices</td></tr>
+    <tr><td><strong>Rules &amp; tuning</strong></td><td>Built-in, language-specific, framework-specific and custom rules; false-positive management; suppression / exception management; security vs. code-quality separation</td></tr>
+    <tr><td><strong>Developer workflow</strong></td><td>IDE integration; pull-request scanning; branch protection; incremental / changed-code scanning</td></tr>
+    <tr><td><strong>Pipeline &amp; governance</strong></td><td>CI/CD integration; security gates; severity &amp; prioritization; remediation SLA</td></tr>
+  </tbody>
+</table>
+<p class="lede" style="font-size:9.5pt;">In a mature programme SAST is one control among several. Adjacent capabilities &mdash; API security, cloud security, container/Kubernetes security, IaC security, software supply-chain security, vulnerability management, security architecture and DevSecOps &mdash; are tracked as their own areas.</p>
+
+<h2 id="s12"><span class="n">12</span>Terminology &amp; references</h2>
+<div class="cols">
+  <div>
+    <h3>Terminology</h3>
+    <ul style="font-size:9.3pt;">
+      <li><strong>AST</strong> &mdash; abstract syntax tree; parsed structural model of code.</li>
+      <li><strong>CFG / call graph</strong> &mdash; control-flow within a function / call relationships across functions.</li>
+      <li><strong>Taint analysis</strong> &mdash; tracking untrusted data from source to sink.</li>
+      <li><strong>Source / sink / sanitizer</strong> &mdash; input point / sensitive operation / neutralizing operation.</li>
+      <li><strong>Interprocedural</strong> &mdash; analysis that crosses function boundaries.</li>
+      <li><strong>CWE</strong> &mdash; Common Weakness Enumeration.</li>
+      <li><strong>White-box</strong> &mdash; testing with full internal visibility.</li>
+      <li><strong>Baseline</strong> &mdash; recorded set of pre-existing findings.</li>
+    </ul>
+  </div>
+  <div>
+    <h3>References</h3>
+    <ul class="ref">
+      <li>OWASP Application Security Verification Standard (ASVS)</li>
+      <li>OWASP Software Assurance Maturity Model (SAMM)</li>
+      <li>OWASP Top 10</li>
+      <li>MITRE CWE &mdash; Common Weakness Enumeration</li>
+      <li>NIST SP 800-218 &mdash; Secure Software Development Framework (SSDF), practice PW.8</li>
+      <li>MITRE CWE Top 25 Most Dangerous Software Weaknesses</li>
+    </ul>
+  </div>
+</div>
+
+<footer>Static Application Security Testing &mdash; technique reference. Standards and tool names are cited for identification only. Document 1 of the application-security reference set (SAST, DAST, SCA, secret scanning, CI/CD security, threat modeling, OAuth/OIDC/JWT).</footer>
+
+</div>
+</body>
+</html>
