@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GitHub Project Delivery — Zero to Running Application</title>
+<style>
+  :root{
+    --ink:#15181d; --ink2:#3d434d; --muted:#6b7280;
+    --line:#e4e7eb; --rule:#cfd4da; --surface:#ffffff; --plane:#f6f7f9;
+    --accent:#1f4e79; --accent2:#2d6ca8;
+    --note:#1f4e79; --caution:#9a6a00; --warn-bg:#fbf4e6;
+    --code-bg:#1b1f26; --code-ink:#e6e9ee; --ok:#1a7f37; --bad:#c0392b;
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-print-color-adjust:exact; print-color-adjust:exact;}
+  body{margin:0; color:var(--ink); background:var(--plane); font-family:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif; font-size:10.4pt; line-height:1.52;}
+  .doc{max-width:200mm; margin:0 auto; background:var(--surface); padding:0 18mm 16mm; box-shadow:0 1px 16px rgba(0,0,0,.06);}
+  @media screen{ body{padding:8mm 0;} }
+  @page{ size:A4; margin:18mm 16mm; }
+  @media print{ .doc{max-width:none; margin:0; padding:0; box-shadow:none;} }
+  h1,h2,h3{font-weight:600; color:var(--ink); line-height:1.25;}
+  h2{font-size:14.5pt; margin:9mm 0 2.5mm; padding-top:2mm; color:var(--accent); border-top:2px solid var(--accent);}
+  h2 .n{color:var(--accent2); font-weight:700; margin-right:2mm;}
+  h3{font-size:11.2pt; margin:5mm 0 1.5mm; color:var(--ink);}
+  p{margin:0 0 2.6mm;} a{color:var(--accent2); text-decoration:none;}
+  ul,ol{margin:0 0 2.8mm; padding-left:5.5mm;} li{margin:0 0 1.1mm;}
+  strong{font-weight:600;} code{font-family:"Cascadia Code",Consolas,monospace; font-size:9pt; background:#eef1f4; padding:.2mm 1.2mm; border-radius:2px;}
+  .lede{font-size:10.6pt; color:var(--ink2);}
+  header.title{border-bottom:3px solid var(--accent); padding:14mm 0 6mm; margin-bottom:2mm;}
+  header.title .cat{font-size:8.5pt; letter-spacing:.18em; text-transform:uppercase; color:var(--accent2); font-weight:700;}
+  header.title h1{font-size:23pt; margin:3mm 0 2mm; letter-spacing:-.3pt; color:var(--ink);}
+  header.title .scope{font-size:11pt; color:var(--ink2); max-width:158mm;}
+  header.title .meta{margin-top:5mm; font-size:8.6pt; color:var(--muted); display:flex; gap:7mm; flex-wrap:wrap;}
+  header.title .meta b{color:var(--ink2); font-weight:600;}
+  .toc{background:var(--plane); border:1px solid var(--line); border-radius:4px; padding:4mm 6mm; margin:5mm 0 2mm; columns:2; column-gap:10mm; font-size:9.3pt;}
+  .toc a{display:block; color:var(--ink2); padding:.8mm 0; break-inside:avoid;}
+  .toc a .n{color:var(--accent2); font-weight:600; display:inline-block; width:6mm;}
+  table{width:100%; border-collapse:collapse; font-size:9.1pt; margin:2.5mm 0 4mm;}
+  caption{caption-side:top; text-align:left; font-size:8.6pt; color:var(--muted); margin-bottom:1.5mm; font-style:italic;}
+  th,td{text-align:left; padding:2.1mm 2.6mm; border:1px solid var(--line); vertical-align:top;}
+  thead th{background:var(--accent); color:#fff; font-weight:600; font-size:8.5pt; letter-spacing:.02em; border-color:var(--accent);}
+  tbody tr:nth-child(even){background:var(--plane);}
+  td code, th code{background:#eef1f4;}
+  pre{background:var(--code-bg); color:var(--code-ink); border-radius:4px; padding:4mm 5mm; font-family:"Cascadia Code",Consolas,monospace; font-size:8.5pt; line-height:1.5; margin:2.5mm 0; white-space:pre-wrap; word-break:break-word;}
+  pre .c{color:#8b94a3;} pre .k{color:#7cc5ff;} pre .s{color:#9ee493;} pre .f{color:#f0c674;} pre .n2{color:#79c0ff;} pre .bad{color:#ff8f8f;} pre .ok{color:#8ce39a;}
+  .note{border-left:3px solid var(--note); background:#eef3f9; padding:3mm 4mm; margin:3mm 0; font-size:9.6pt; border-radius:0 3px 3px 0;}
+  .note.caution{border-color:var(--caution); background:var(--warn-bg);}
+  .note .lab{font-weight:700; color:var(--note); text-transform:uppercase; font-size:8pt; letter-spacing:.06em; margin-right:1.5mm;}
+  .note.caution .lab{color:var(--caution);}
+  .cols{display:grid; grid-template-columns:1fr 1fr; gap:6mm;}
+  .tag{display:inline-block; font-size:7.6pt; font-weight:700; padding:.5mm 1.8mm; border-radius:2px; color:#fff; vertical-align:middle;}
+  .ref{font-size:9pt;} .ref li{margin-bottom:1.6mm;}
+  footer{margin-top:9mm; padding-top:3mm; border-top:1px solid var(--line); font-size:8.2pt; color:var(--muted);}
+  h2{break-after:avoid;} table,pre,.note{break-inside:avoid;}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<header class="title">
+  <div class="cat">Engineering &middot; Delivery Reference</div>
+  <h1>GitHub Project Delivery: Zero to Running Application</h1>
+  <div class="scope">End-to-end setup of a GitHub project: repository and branch structure, containerization with Docker, environment segregation with Compose, configuration and secrets, a CI/CD pipeline (build, test, publish and retrieve artifacts/images), and README and Makefile conventions. Concepts, terminology, requirements and a step-by-step path to a running application.</div>
+  <div class="meta"><span><b>Scope</b> Git, GitHub, Docker, Compose, GitHub Actions</span><span><b>Level</b> Foundational &rarr; applied</span><span><b>Registry</b> GitHub Container Registry (GHCR)</span></div>
+</header>
+
+<nav class="toc">
+  <a href="#s1"><span class="n">1</span>Requirements &amp; prerequisites</a>
+  <a href="#s2"><span class="n">2</span>Concepts &amp; terminology</a>
+  <a href="#s3"><span class="n">3</span>Repository setup from zero</a>
+  <a href="#s4"><span class="n">4</span>Project structure &amp; README</a>
+  <a href="#s5"><span class="n">5</span>Containerization (Docker)</a>
+  <a href="#s6"><span class="n">6</span>Compose &amp; environment segregation</a>
+  <a href="#s7"><span class="n">7</span>Configuration &amp; secrets</a>
+  <a href="#s8"><span class="n">8</span>CI/CD with GitHub Actions</a>
+  <a href="#s9"><span class="n">9</span>Build, publish &amp; retrieve</a>
+  <a href="#s10"><span class="n">10</span>Makefile conventions</a>
+  <a href="#s11"><span class="n">11</span>End-to-end walkthrough</a>
+  <a href="#s12"><span class="n">12</span>Best-practice checklist</a>
+  <a href="#s13"><span class="n">13</span>Terminology &amp; references</a>
+</nav>
+
+<h2 id="s1"><span class="n">1</span>Requirements &amp; prerequisites</h2>
+<table>
+  <thead><tr><th style="width:26%">Requirement</th><th style="width:30%">Purpose</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Git</strong></td><td>Version control, local history</td><td>Any recent version; configure <code>user.name</code>/<code>user.email</code>.</td></tr>
+    <tr><td><strong>GitHub account</strong></td><td>Remote hosting, CI/CD, registry</td><td>Free tier includes Actions minutes and GHCR.</td></tr>
+    <tr><td><strong>GitHub CLI</strong> (<code>gh</code>)</td><td>Create repos, manage secrets from the terminal</td><td>Optional but convenient; authenticates with <code>gh auth login</code>.</td></tr>
+    <tr><td><strong>Container engine</strong></td><td>Build and run images locally</td><td>Docker Desktop, Rancher Desktop or Podman. Not required if images are built only in CI.</td></tr>
+    <tr><td><strong>Editor</strong></td><td>Development</td><td>VS Code integrates with Git, Docker and devcontainers.</td></tr>
+    <tr><td><strong>make</strong></td><td>Command vocabulary</td><td>Preinstalled on Linux/macOS; on Windows use Git Bash, Chocolatey, or the task runner of choice.</td></tr>
+  </tbody>
+</table>
+<p>Working knowledge assumed: a command line, a programming language/runtime for the application, and basic HTTP. Everything else is introduced below.</p>
+
+<h2 id="s2"><span class="n">2</span>Concepts &amp; terminology</h2>
+<table>
+  <thead><tr><th style="width:24%">Term</th><th>Definition</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Repository (repo)</strong></td><td>A project's version-controlled file tree and history.</td></tr>
+    <tr><td><strong>Commit</strong></td><td>An immutable snapshot of changes with a message.</td></tr>
+    <tr><td><strong>Branch</strong></td><td>A movable pointer to a line of commits; isolates work in progress.</td></tr>
+    <tr><td><strong>Remote</strong></td><td>A hosted copy of the repository (e.g. on GitHub); <code>origin</code> by convention.</td></tr>
+    <tr><td><strong>Pull request (PR)</strong></td><td>A proposal to merge one branch into another; the unit of review and the trigger for CI checks.</td></tr>
+    <tr><td><strong>CI / CD</strong></td><td>Continuous Integration (merge + automatically build/test often) / Continuous Delivery or Deployment (automatically release).</td></tr>
+    <tr><td><strong>Pipeline / workflow</strong></td><td>The automated sequence run on events; in GitHub Actions a <em>workflow</em> is a YAML file of <em>jobs</em> and <em>steps</em>.</td></tr>
+    <tr><td><strong>Runner</strong></td><td>The machine that executes a job (GitHub-hosted or self-hosted).</td></tr>
+    <tr><td><strong>Image / container</strong></td><td>A packaged, immutable filesystem + metadata (image) and a running instance of it (container).</td></tr>
+    <tr><td><strong>Registry</strong></td><td>A store for images (e.g. GHCR, Docker Hub); images are pushed to and pulled from it.</td></tr>
+    <tr><td><strong>Artifact</strong></td><td>A build output passed between jobs or retained after a run.</td></tr>
+    <tr><td><strong>Compose</strong></td><td>A tool that defines and runs a multi-container application from one file.</td></tr>
+    <tr><td><strong>Environment</strong></td><td>A named deployment target (dev/staging/prod) with its own secrets and protection rules.</td></tr>
+    <tr><td><strong>Secret</strong></td><td>A credential supplied at runtime, never committed to the repository.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="s3"><span class="n">3</span>Repository setup from zero</h2>
+<pre><span class="c"># Initialize locally</span>
+git init
+git branch -M main
+git add -A
+git commit -m <span class="s">"Initial commit"</span>
+
+<span class="c"># Create the GitHub repo and push (GitHub CLI)</span>
+gh repo create my-app --private --source=. --remote=origin --push
+
+<span class="c"># Or add an existing remote manually</span>
+git remote add origin git@github.com:&lt;user&gt;/my-app.git
+git push -u origin main</pre>
+<h3>Branch strategy</h3>
+<p>For most projects use <strong>trunk-based development</strong>: a protected <code>main</code>, short-lived feature branches, merged via PR. Reserve long-lived release branches (Git Flow) for products with parallel supported versions.</p>
+<pre><span class="c"># Feature branch workflow</span>
+git switch -c feat/login
+<span class="c"># ... commit work ...</span>
+git push -u origin feat/login
+gh pr create --fill          <span class="c"># open a PR; CI runs on it</span></pre>
+<h3>Branch protection</h3>
+<p>On <code>main</code>, require: a PR before merge, passing status checks (the CI pipeline), at least one review, and a linear/up-to-date history. This makes the pipeline the enforced quality gate.</p>
+<div class="note"><span class="lab">Note</span>Add a <code>.gitignore</code> before the first commit to avoid committing build output, dependencies and local config. Add a <code>LICENSE</code> and <code>README.md</code> at creation; they are expected of any public project.</div>
+
+<h2 id="s4"><span class="n">4</span>Project structure &amp; README</h2>
+<pre>my-app/
+├── README.md
+├── LICENSE
+├── .gitignore
+├── .dockerignore
+├── .env.example            <span class="c"># documented config; real .env is gitignored</span>
+├── Makefile
+├── docker-compose.yml
+├── compose.override.yml    <span class="c"># local dev overrides (optional)</span>
+├── src/                    <span class="c"># application code</span>
+├── tests/
+├── Dockerfile
+└── .github/
+    └── workflows/
+        ├── ci.yml
+        └── release.yml</pre>
+<h3>README structure</h3>
+<p>A README answers, in order: what it is, how to run it, how to develop it, how it is deployed. Keep it current &mdash; it is the project's entry point.</p>
+<table>
+  <thead><tr><th style="width:28%">Section</th><th>Content</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Title + one-line summary</strong></td><td>What the project is, in a sentence.</td></tr>
+    <tr><td><strong>Badges</strong></td><td>CI status, licence, version &mdash; machine-verifiable state.</td></tr>
+    <tr><td><strong>Requirements</strong></td><td>Runtimes, tools, versions.</td></tr>
+    <tr><td><strong>Quick start</strong></td><td>The minimal commands to run it (ideally <code>make up</code>).</td></tr>
+    <tr><td><strong>Configuration</strong></td><td>Environment variables; reference <code>.env.example</code>.</td></tr>
+    <tr><td><strong>Development</strong></td><td>How to build, test, lint locally.</td></tr>
+    <tr><td><strong>Deployment / CI-CD</strong></td><td>How releases happen; environments.</td></tr>
+    <tr><td><strong>Architecture</strong></td><td>Components and how they fit (diagram or prose).</td></tr>
+    <tr><td><strong>Licence</strong></td><td>Terms of use.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="s5"><span class="n">5</span>Containerization (Docker)</h2>
+<p>A container packages the application and its runtime so it runs identically on any machine and in CI. Define the build in a <strong>Dockerfile</strong>; exclude noise with <strong>.dockerignore</strong>.</p>
+<pre><span class="c"># Multi-stage build: smaller, no build tools in the final image</span>
+<span class="k">FROM</span> python:3.12-slim <span class="k">AS</span> base
+<span class="k">ENV</span> PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+
+<span class="k">FROM</span> base <span class="k">AS</span> deps
+<span class="k">WORKDIR</span> /app
+<span class="k">COPY</span> requirements.txt .
+<span class="k">RUN</span> pip install --no-cache-dir -r requirements.txt
+
+<span class="k">FROM</span> base <span class="k">AS</span> runtime
+<span class="k">WORKDIR</span> /app
+<span class="c"># copy installed packages from the deps stage</span>
+<span class="k">COPY</span> --from=deps /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+<span class="k">COPY</span> src/ ./src
+<span class="c"># run as a non-root user</span>
+<span class="k">RUN</span> useradd -m appuser
+<span class="k">USER</span> appuser
+<span class="k">EXPOSE</span> 8000
+<span class="k">HEALTHCHECK</span> --interval=30s --timeout=3s CMD curl -f http://localhost:8000/health || exit 1
+<span class="k">CMD</span> [<span class="s">"uvicorn"</span>, <span class="s">"src.main:app"</span>, <span class="s">"--host"</span>, <span class="s">"0.0.0.0"</span>, <span class="s">"--port"</span>, <span class="s">"8000"</span>]</pre>
+<table>
+  <caption>Dockerfile best practices</caption>
+  <thead><tr><th style="width:34%">Practice</th><th>Reason</th></tr></thead>
+  <tbody>
+    <tr><td>Pin a specific base image tag (or digest)</td><td>Reproducible builds; avoid silent upstream changes.</td></tr>
+    <tr><td>Multi-stage builds</td><td>Keep build tools out of the final image; smaller, smaller attack surface.</td></tr>
+    <tr><td>Run as a non-root user</td><td>Least privilege inside the container.</td></tr>
+    <tr><td>Copy dependency manifests before source</td><td>Layer caching: dependency layer is reused when only code changes.</td></tr>
+    <tr><td>Use <code>.dockerignore</code></td><td>Exclude <code>.git</code>, <code>.env</code>, <code>node_modules</code>, tests from the build context.</td></tr>
+    <tr><td>Add a <code>HEALTHCHECK</code></td><td>Lets the orchestrator know when the container is ready/healthy.</td></tr>
+    <tr><td>No secrets in the image</td><td>Images are distributable; inject secrets at runtime (Section 7).</td></tr>
+  </tbody>
+</table>
+
+<h2 id="s6"><span class="n">6</span>Compose &amp; environment segregation</h2>
+<p>Docker Compose defines a multi-service application (app, database, cache) in one file and wires their networks and volumes. <strong>Segregation</strong> applies at three levels: service networks, per-environment configuration, and per-environment secrets.</p>
+<pre><span class="c"># docker-compose.yml  (base definition)</span>
+services:
+  api:
+    build: .
+    env_file: .env
+    depends_on: [db, redis]
+    networks: [frontend, backend]
+    ports: [<span class="s">"8000:8000"</span>]
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    networks: [backend]            <span class="c"># NOT on frontend: not reachable from the edge</span>
+    volumes: [pgdata:/var/lib/postgresql/data]
+  redis:
+    image: redis:7
+    networks: [backend]
+
+networks:
+  frontend:
+  backend:
+    internal: true                 <span class="c"># backend network has no external egress</span>
+volumes:
+  pgdata:</pre>
+<h3>Segregation techniques</h3>
+<table>
+  <thead><tr><th style="width:30%">Technique</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Separate networks</strong></td><td>The database/cache sit on an internal <code>backend</code> network, unreachable from outside; only the API bridges <code>frontend</code> and <code>backend</code>.</td></tr>
+    <tr><td><strong>Override files</strong></td><td><code>compose.override.yml</code> is applied automatically for local dev (hot-reload, exposed ports, debug). Production uses only the base file or an explicit <code>-f</code> set.</td></tr>
+    <tr><td><strong>Per-environment env files</strong></td><td><code>.env</code> (local), injected variables (CI), platform secrets (prod) &mdash; same compose file, different configuration.</td></tr>
+    <tr><td><strong>Profiles</strong></td><td><code>profiles:</code> enable optional services (e.g. a seed job, a mailhog) only when requested.</td></tr>
+  </tbody>
+</table>
+<pre><span class="c"># Local dev (base + override applied automatically)</span>
+docker compose up -d
+
+<span class="c"># Explicit production composition (no dev override)</span>
+docker compose -f docker-compose.yml -f compose.prod.yml up -d</pre>
+<div class="note"><span class="lab">Note</span>Keep dev and prod differences in override files, not in branches of a single file. The base file should be the production-truthful definition; overrides add local conveniences.</div>
+
+<h2 id="s7"><span class="n">7</span>Configuration &amp; secrets</h2>
+<p>Configuration is supplied by the environment, never hardcoded. Document every variable in <code>.env.example</code>; keep the real <code>.env</code> out of version control.</p>
+<table>
+  <thead><tr><th style="width:26%">Context</th><th style="width:34%">Where config/secrets live</th><th>Rule</th></tr></thead>
+  <tbody>
+    <tr><td>Local development</td><td><code>.env</code> (gitignored), from <code>.env.example</code></td><td>Fake/local values only.</td></tr>
+    <tr><td>CI pipeline</td><td><strong>GitHub Actions secrets</strong> (repo or org)</td><td>Injected as <code>${{ secrets.NAME }}</code>; masked in logs.</td></tr>
+    <tr><td>Deployment target</td><td><strong>GitHub Environments</strong> secrets (per env) or a platform secrets manager</td><td>Scoped per environment with protection rules.</td></tr>
+  </tbody>
+</table>
+<pre><span class="c"># Set repository/environment secrets from the CLI</span>
+gh secret set DATABASE_URL --body <span class="s">"postgresql://..."</span>
+gh secret set REGISTRY_TOKEN --env production</pre>
+<h3>GitHub Environments</h3>
+<p>Define <code>development</code>, <code>staging</code> and <code>production</code> environments. Each holds its own secrets and can require <strong>reviewers</strong>, <strong>wait timers</strong> and <strong>branch restrictions</strong> before a job targeting it runs &mdash; the mechanism for deployment approvals and environment segregation in CI/CD.</p>
+<div class="note caution"><span class="lab">Caution</span>Never commit secrets. Add <code>.env</code> to <code>.gitignore</code> before the first commit. Prefer short-lived credentials: for cloud deploys use <strong>OIDC federation</strong> (<code>permissions: id-token: write</code>) to mint temporary credentials instead of storing long-lived cloud keys as secrets. See the companion Secret-Scanning and OAuth/OIDC/JWT references.</div>
+
+<h2 id="s8"><span class="n">8</span>CI/CD with GitHub Actions</h2>
+<p>A workflow is a YAML file in <code>.github/workflows/</code>. It runs on <em>events</em> (triggers), executes <em>jobs</em> (on runners) made of <em>steps</em> (shell commands or reusable <em>actions</em>).</p>
+<pre><span class="c"># .github/workflows/ci.yml — runs on every PR and push to main</span>
+<span class="f">name</span>: ci
+<span class="f">on</span>:
+  pull_request:
+  push: { branches: [ main ] }
+
+<span class="f">permissions</span>: { contents: read }      <span class="c"># least privilege by default</span>
+
+<span class="f">jobs</span>:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4          <span class="c"># retrieve the source</span>
+      - uses: actions/setup-python@v5
+        with: { python-version: <span class="s">"3.12"</span>, cache: <span class="s">"pip"</span> }   <span class="c"># dependency cache retrieval</span>
+      - run: pip install -r requirements.txt
+      - run: pytest -q                     <span class="c"># fail the job (and the PR) on test failure</span></pre>
+<table>
+  <caption>Workflow anatomy</caption>
+  <thead><tr><th style="width:22%">Element</th><th>Role</th></tr></thead>
+  <tbody>
+    <tr><td><code>on</code> (triggers)</td><td>Events that start the workflow: <code>pull_request</code>, <code>push</code>, <code>schedule</code>, <code>workflow_dispatch</code>, <code>release</code>.</td></tr>
+    <tr><td><code>jobs</code></td><td>Units of work; run in parallel by default; sequence with <code>needs</code>.</td></tr>
+    <tr><td><code>steps</code></td><td>Ordered commands/actions within a job.</td></tr>
+    <tr><td><code>uses</code> / <code>run</code></td><td>Invoke a reusable action / run a shell command.</td></tr>
+    <tr><td><code>permissions</code></td><td>Scope the job's <code>GITHUB_TOKEN</code> to least privilege.</td></tr>
+    <tr><td><code>matrix</code></td><td>Run a job across multiple versions/OSes in parallel.</td></tr>
+    <tr><td><code>cache</code></td><td>Persist and retrieve dependencies between runs for speed.</td></tr>
+  </tbody>
+</table>
+<h3>Applying CI/CD correctly</h3>
+<ul>
+  <li><strong>CI on every PR</strong> &mdash; build, test, lint; make these required status checks for merging to <code>main</code>.</li>
+  <li><strong>Fail fast and loudly</strong> &mdash; a failing test or lint must fail the job; do not <code>continue-on-error</code> on gates.</li>
+  <li><strong>Least privilege</strong> &mdash; set <code>permissions</code> explicitly; grant <code>packages: write</code>/<code>id-token: write</code> only where needed.</li>
+  <li><strong>Pin actions</strong> &mdash; reference actions by major tag, and by commit SHA for anything security-sensitive.</li>
+  <li><strong>Separate CI from CD</strong> &mdash; CI validates; a separate release workflow publishes and deploys, often on a tag or on merge to <code>main</code>.</li>
+  <li><strong>Cache dependencies</strong> &mdash; retrieve from cache to keep runs fast; keep the cache key tied to the lockfile.</li>
+</ul>
+
+<h2 id="s9"><span class="n">9</span>Build, publish &amp; retrieve</h2>
+<p>The release pipeline builds the image, publishes it to a registry, and the deployment step retrieves (pulls) it. GitHub Container Registry (GHCR) integrates with the built-in <code>GITHUB_TOKEN</code>.</p>
+<pre><span class="c"># .github/workflows/release.yml — build &amp; publish an image to GHCR</span>
+<span class="f">name</span>: release
+<span class="f">on</span>:
+  push: { branches: [ main ] }
+  release: { types: [ published ] }
+
+<span class="f">permissions</span>:
+  contents: read
+  packages: write                        <span class="c"># required to push to GHCR</span>
+
+<span class="f">jobs</span>:
+  build-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ github.repository }}:${{ github.sha }},ghcr.io/${{ github.repository }}:latest</pre>
+<h3>Artifacts vs. images</h3>
+<table>
+  <thead><tr><th style="width:24%">Mechanism</th><th style="width:38%">Use</th><th>Publish / retrieve</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Workflow artifact</strong></td><td>Pass build output between jobs; retain test reports/SBOMs after a run.</td><td><code>actions/upload-artifact</code> / <code>download-artifact</code></td></tr>
+    <tr><td><strong>Container image</strong></td><td>The deployable unit.</td><td>Push to GHCR; <code>docker pull</code> on deploy.</td></tr>
+    <tr><td><strong>Dependency cache</strong></td><td>Speed up repeated builds.</td><td><code>actions/cache</code> (keyed on the lockfile)</td></tr>
+  </tbody>
+</table>
+<h3>Deployment: retrieving the image</h3>
+<pre><span class="c"># On the deployment target (or a deploy job), pull the published image and run it</span>
+echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u &lt;user&gt; --password-stdin
+docker pull ghcr.io/&lt;user&gt;/my-app:&lt;sha&gt;
+docker compose -f docker-compose.yml -f compose.prod.yml up -d</pre>
+<p>Target a GitHub <strong>Environment</strong> (<code>environment: production</code>) on the deploy job to enforce approvals and inject production-scoped secrets. Deploy immutable, SHA-tagged images rather than <code>latest</code> so a deployment is exactly reproducible and reversible.</p>
+
+<h2 id="s10"><span class="n">10</span>Makefile conventions</h2>
+<p>A Makefile gives the project one command vocabulary that is identical locally and in CI, hiding longer underlying commands. Keep targets short, declared <code>.PHONY</code>, and self-documenting.</p>
+<pre><span class="c"># Makefile — '>' recipe prefix is robust to editors that strip tabs</span>
+.RECIPEPREFIX = &gt;
+.PHONY: help up down build test lint scan deploy clean
+
+help:                 <span class="c">## list targets</span>
+&gt; @grep -E <span class="s">'^[a-z-]+:.*##'</span> $(MAKEFILE_LIST) | sed <span class="s">'s/:.*##/ —/'</span>
+
+up:                   <span class="c">## start the stack locally</span>
+&gt; docker compose up -d --build
+
+down:                 <span class="c">## stop the stack</span>
+&gt; docker compose down
+
+test:                 <span class="c">## run tests</span>
+&gt; docker compose run --rm api pytest -q
+
+lint:                 <span class="c">## run linters/formatters</span>
+&gt; ruff check . &amp;&amp; ruff format --check .
+
+clean:                <span class="c">## remove containers and volumes</span>
+&gt; docker compose down -v</pre>
+<table>
+  <thead><tr><th style="width:34%">Practice</th><th>Reason</th></tr></thead>
+  <tbody>
+    <tr><td>Declare <code>.PHONY</code> targets</td><td>Prevent conflicts with files of the same name.</td></tr>
+    <tr><td>A <code>help</code> target as default</td><td>Discoverability; one place lists what the project can do.</td></tr>
+    <tr><td>Thin wrappers over real tools</td><td>The Makefile orchestrates; it does not reimplement logic.</td></tr>
+    <tr><td>Same targets used by CI</td><td>Local and pipeline run identical commands (<code>make test</code>, <code>make lint</code>).</td></tr>
+    <tr><td>Variables for versions/paths</td><td>Single point of change; no duplication.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="s11"><span class="n">11</span>End-to-end walkthrough</h2>
+<p>From empty directory to a running, continuously delivered application:</p>
+<ol>
+  <li><strong>Initialize</strong> &mdash; <code>git init</code>; add <code>.gitignore</code>, <code>README.md</code>, <code>LICENSE</code>, <code>.env.example</code>; first commit.</li>
+  <li><strong>Create the remote</strong> &mdash; <code>gh repo create</code>; push <code>main</code>; enable branch protection.</li>
+  <li><strong>Write the application</strong> &mdash; minimal runnable service with a <code>/health</code> endpoint.</li>
+  <li><strong>Containerize</strong> &mdash; add <code>Dockerfile</code> and <code>.dockerignore</code>; build locally.</li>
+  <li><strong>Compose</strong> &mdash; add <code>docker-compose.yml</code> (app + db + cache, segregated networks); <code>make up</code> runs the stack.</li>
+  <li><strong>Configuration</strong> &mdash; move all config to environment variables; document in <code>.env.example</code>.</li>
+  <li><strong>CI</strong> &mdash; add <code>ci.yml</code> (checkout, cache, install, test, lint); make it a required check.</li>
+  <li><strong>Secrets &amp; environments</strong> &mdash; set repository/environment secrets; define <code>production</code> with required reviewers.</li>
+  <li><strong>CD</strong> &mdash; add <code>release.yml</code> (build, push image to GHCR, SBOM, deploy pulling the SHA-tagged image).</li>
+  <li><strong>Iterate via PRs</strong> &mdash; feature branch &rarr; PR &rarr; CI green &rarr; review &rarr; merge &rarr; release &rarr; deploy.</li>
+</ol>
+<pre><span class="c"># The everyday loop, identical on any machine</span>
+git switch -c feat/x
+<span class="c"># ... change code ...</span>
+make test &amp;&amp; make lint         <span class="c"># validate locally</span>
+git commit -am <span class="s">"feat: x"</span> &amp;&amp; git push -u origin feat/x
+gh pr create --fill            <span class="c"># CI runs; merge when green and reviewed</span></pre>
+
+<h2 id="s12"><span class="n">12</span>Best-practice checklist</h2>
+<div class="cols">
+  <div>
+    <h3>Repository</h3>
+    <ul style="font-size:9.4pt;">
+      <li>Protected <code>main</code>; PRs + required checks + review.</li>
+      <li>Short-lived feature branches; small, focused PRs.</li>
+      <li>Conventional, descriptive commit messages.</li>
+      <li><code>.gitignore</code>, <code>.dockerignore</code>, <code>LICENSE</code>, current README.</li>
+      <li>Dependabot/Renovate enabled for updates.</li>
+    </ul>
+    <h3>Containers</h3>
+    <ul style="font-size:9.4pt;">
+      <li>Pinned base images; multi-stage; non-root; healthcheck.</li>
+      <li>No secrets in images; inject at runtime.</li>
+      <li>Segregated Compose networks; dev/prod via overrides.</li>
+    </ul>
+  </div>
+  <div>
+    <h3>CI/CD</h3>
+    <ul style="font-size:9.4pt;">
+      <li>CI on every PR; fail fast; required status checks.</li>
+      <li>Least-privilege <code>permissions</code>; pinned actions.</li>
+      <li>Dependency caching; separate CI and CD workflows.</li>
+      <li>Immutable, SHA-tagged images; deploy by digest/SHA.</li>
+      <li>Environments with secrets + approvals; OIDC over stored cloud keys.</li>
+    </ul>
+    <h3>Operability</h3>
+    <ul style="font-size:9.4pt;">
+      <li>One command to run (<code>make up</code>) and to test (<code>make test</code>).</li>
+      <li>Config via environment; documented in <code>.env.example</code>.</li>
+      <li>SBOM and image scan in the release pipeline.</li>
+    </ul>
+  </div>
+</div>
+
+<h2 id="s13"><span class="n">13</span>Terminology &amp; references</h2>
+<div class="cols">
+  <div>
+    <h3>Terminology</h3>
+    <ul style="font-size:9.3pt;">
+      <li><strong>Workflow / job / step</strong> &mdash; the GitHub Actions hierarchy.</li>
+      <li><strong>Runner</strong> &mdash; machine executing a job.</li>
+      <li><strong>Action</strong> &mdash; a reusable workflow step.</li>
+      <li><strong>Registry (GHCR)</strong> &mdash; image store.</li>
+      <li><strong>Artifact</strong> &mdash; retained/passed build output.</li>
+      <li><strong>Environment</strong> &mdash; deployment target with scoped secrets and rules.</li>
+      <li><strong>OIDC federation</strong> &mdash; short-lived cloud credentials for CI.</li>
+      <li><strong>Override file</strong> &mdash; Compose file layered for an environment.</li>
+    </ul>
+  </div>
+  <div>
+    <h3>References</h3>
+    <ul class="ref">
+      <li>GitHub Actions documentation</li>
+      <li>GitHub Container Registry (GHCR) documentation</li>
+      <li>GitHub Environments &amp; deployment protection rules</li>
+      <li>Docker &amp; Docker Compose documentation</li>
+      <li>Dockerfile best practices (Docker docs)</li>
+      <li>Companion references: <code>CICD-Security.html</code>, <code>Secret-Scanning.html</code>, <code>OAuth-OIDC-JWT.html</code></li>
+    </ul>
+  </div>
+</div>
+
+<footer>GitHub Project Delivery: Zero to Running Application &mdash; delivery reference. Product and tool names are cited for identification only.</footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project Operations on Ubuntu Linux</title>
+<style>
+  :root{
+    --ink:#15181d; --ink2:#3d434d; --muted:#6b7280;
+    --line:#e4e7eb; --rule:#cfd4da; --surface:#ffffff; --plane:#f6f7f9;
+    --accent:#1f4e79; --accent2:#2d6ca8;
+    --note:#1f4e79; --caution:#9a6a00; --warn-bg:#fbf4e6;
+    --code-bg:#1b1f26; --code-ink:#e6e9ee; --ok:#1a7f37; --bad:#c0392b;
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-print-color-adjust:exact; print-color-adjust:exact;}
+  body{margin:0; color:var(--ink); background:var(--plane); font-family:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif; font-size:10.4pt; line-height:1.52;}
+  .doc{max-width:200mm; margin:0 auto; background:var(--surface); padding:0 18mm 16mm; box-shadow:0 1px 16px rgba(0,0,0,.06);}
+  @media screen{ body{padding:8mm 0;} }
+  @page{ size:A4; margin:18mm 16mm; }
+  @media print{ .doc{max-width:none; margin:0; padding:0; box-shadow:none;} }
+  h1,h2,h3{font-weight:600; color:var(--ink); line-height:1.25;}
+  h2{font-size:14.5pt; margin:9mm 0 2.5mm; padding-top:2mm; color:var(--accent); border-top:2px solid var(--accent);}
+  h2 .n{color:var(--accent2); font-weight:700; margin-right:2mm;}
+  h3{font-size:11.2pt; margin:5mm 0 1.5mm; color:var(--ink);}
+  p{margin:0 0 2.6mm;} a{color:var(--accent2); text-decoration:none;}
+  ul,ol{margin:0 0 2.8mm; padding-left:5.5mm;} li{margin:0 0 1.1mm;}
+  strong{font-weight:600;} code{font-family:"Cascadia Code",Consolas,monospace; font-size:9pt; background:#eef1f4; padding:.2mm 1.2mm; border-radius:2px;}
+  .lede{font-size:10.6pt; color:var(--ink2);}
+  header.title{border-bottom:3px solid var(--accent); padding:14mm 0 6mm; margin-bottom:2mm;}
+  header.title .cat{font-size:8.5pt; letter-spacing:.18em; text-transform:uppercase; color:var(--accent2); font-weight:700;}
+  header.title h1{font-size:23pt; margin:3mm 0 2mm; letter-spacing:-.3pt; color:var(--ink);}
+  header.title .scope{font-size:11pt; color:var(--ink2); max-width:158mm;}
+  header.title .meta{margin-top:5mm; font-size:8.6pt; color:var(--muted); display:flex; gap:7mm; flex-wrap:wrap;}
+  header.title .meta b{color:var(--ink2); font-weight:600;}
+  .toc{background:var(--plane); border:1px solid var(--line); border-radius:4px; padding:4mm 6mm; margin:5mm 0 2mm; columns:2; column-gap:10mm; font-size:9.3pt;}
+  .toc a{display:block; color:var(--ink2); padding:.8mm 0; break-inside:avoid;}
+  .toc a .n{color:var(--accent2); font-weight:600; display:inline-block; width:6mm;}
+  table{width:100%; border-collapse:collapse; font-size:9.1pt; margin:2.5mm 0 4mm;}
+  caption{caption-side:top; text-align:left; font-size:8.6pt; color:var(--muted); margin-bottom:1.5mm; font-style:italic;}
+  th,td{text-align:left; padding:2.1mm 2.6mm; border:1px solid var(--line); vertical-align:top;}
+  thead th{background:var(--accent); color:#fff; font-weight:600; font-size:8.5pt; letter-spacing:.02em; border-color:var(--accent);}
+  tbody tr:nth-child(even){background:var(--plane);}
+  td code, th code{background:#eef1f4;}
+  pre{background:var(--code-bg); color:var(--code-ink); border-radius:4px; padding:4mm 5mm; font-family:"Cascadia Code",Consolas,monospace; font-size:8.5pt; line-height:1.5; margin:2.5mm 0; white-space:pre-wrap; word-break:break-word;}
+  pre .c{color:#8b94a3;} pre .k{color:#7cc5ff;} pre .s{color:#9ee493;} pre .f{color:#f0c674;} pre .v{color:#e3a7cf;} pre .bad{color:#ff8f8f;} pre .ok{color:#8ce39a;}
+  .note{border-left:3px solid var(--note); background:#eef3f9; padding:3mm 4mm; margin:3mm 0; font-size:9.6pt; border-radius:0 3px 3px 0;}
+  .note.caution{border-color:var(--caution); background:var(--warn-bg);}
+  .note .lab{font-weight:700; color:var(--note); text-transform:uppercase; font-size:8pt; letter-spacing:.06em; margin-right:1.5mm;}
+  .note.caution .lab{color:var(--caution);}
+  .cols{display:grid; grid-template-columns:1fr 1fr; gap:6mm;}
+  .tag{display:inline-block; font-size:7.6pt; font-weight:700; padding:.5mm 1.8mm; border-radius:2px; color:#fff; vertical-align:middle;}
+  .ref{font-size:9pt;} .ref li{margin-bottom:1.6mm;}
+  footer{margin-top:9mm; padding-top:3mm; border-top:1px solid var(--line); font-size:8.2pt; color:var(--muted);}
+  h2{break-after:avoid;} table,pre,.note{break-inside:avoid;}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<header class="title">
+  <div class="cat">Operations &middot; Runbook</div>
+  <h1>Project Operations on Ubuntu Linux</h1>
+  <div class="scope">Install, configure, run, sync, deploy and continuously manage a GitHub-hosted project &mdash; locally and remotely &mdash; using bash on Ubuntu. Covers the toolchain (apt / official repositories), Git/GitHub configuration, the native Docker Engine stack, secrets, multi-machine synchronization, remote repository and pipeline control via the GitHub CLI, deployment, and continuous management with systemd timers.</div>
+  <div class="meta"><span><b>OS</b> Ubuntu 22.04 / 24.04 LTS</span><span><b>Shell</b> bash</span><span><b>Tooling</b> apt, git, gh, Docker Engine</span><span><b>Scheduler</b> systemd timers</span></div>
+</header>
+
+<nav class="toc">
+  <a href="#s1"><span class="n">1</span>Scope &amp; operating model</a>
+  <a href="#s2"><span class="n">2</span>Toolchain installation (apt)</a>
+  <a href="#s3"><span class="n">3</span>One-time configuration</a>
+  <a href="#s4"><span class="n">4</span>Acquire the project (clone)</a>
+  <a href="#s5"><span class="n">5</span>Run locally</a>
+  <a href="#s6"><span class="n">6</span>Secrets &amp; configuration</a>
+  <a href="#s7"><span class="n">7</span>Synchronize across machines</a>
+  <a href="#s8"><span class="n">8</span>Remote repo &amp; pipeline control</a>
+  <a href="#s9"><span class="n">9</span>Deploy</a>
+  <a href="#s10"><span class="n">10</span>Continuous management</a>
+  <a href="#s11"><span class="n">11</span>Helper scripts</a>
+  <a href="#s12"><span class="n">12</span>Troubleshooting</a>
+  <a href="#s13"><span class="n">13</span>Command reference</a>
+</nav>
+
+<h2 id="s1"><span class="n">1</span>Scope &amp; operating model</h2>
+<p>This runbook operates the SecureBank project (or any equivalent GitHub repository) from bash
+on Ubuntu. The lifecycle mirrors the Windows runbook: <strong>install the toolchain → configure
+Git/GitHub → clone → run locally → manage secrets → synchronize between machines → control the
+remote repo and pipelines → deploy → continuously manage</strong>.</p>
+<table>
+  <thead><tr><th style="width:26%">Element</th><th>Choice</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Shell</strong></td><td>bash (default on Ubuntu).</td></tr>
+    <tr><td><strong>Package manager</strong></td><td><code>apt</code>, plus official vendor APT repositories for <code>gh</code> and Docker.</td></tr>
+    <tr><td><strong>Container runtime</strong></td><td><strong>Docker Engine</strong> &mdash; native on Linux; no VM, WSL or Hyper-V layer. Compose is the <code>docker compose</code> plugin.</td></tr>
+    <tr><td><strong>Source control</strong></td><td>Git + GitHub; remote <code>origin</code> is the single source of truth across machines.</td></tr>
+    <tr><td><strong>Remote control</strong></td><td>GitHub CLI (<code>gh</code>) for repos, PRs, secrets, workflows, releases.</td></tr>
+    <tr><td><strong>Scheduler / services</strong></td><td><strong>systemd</strong> timers (user or system) for continuous management; systemd service to run the stack at boot.</td></tr>
+  </tbody>
+</table>
+<p>Linux is the native platform for this stack: Docker runs directly on the kernel, and the
+same <code>Makefile</code>, <code>docker-compose.yml</code> and GitHub Actions workflows work unchanged.</p>
+
+<h2 id="s2"><span class="n">2</span>Toolchain installation (apt)</h2>
+<pre><span class="c"># Base tools</span>
+sudo apt update
+sudo apt install <span class="f">-y</span> git make curl ca-certificates gnupg
+
+<span class="c"># GitHub CLI (official APT repository)</span>
+sudo mkdir <span class="f">-p</span> <span class="f">-m</span> 755 /etc/apt/keyrings
+wget <span class="f">-qO-</span> https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+  | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg &gt; /dev/null
+sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
+<span class="k">echo</span> <span class="s">"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main"</span> \
+  | sudo tee /etc/apt/sources.list.d/github-cli.list &gt; /dev/null
+sudo apt update &amp;&amp; sudo apt install <span class="f">-y</span> gh</pre>
+<h3>Docker Engine (native) + Compose plugin</h3>
+<pre><span class="c"># Official Docker APT repository</span>
+sudo install <span class="f">-m</span> 0755 <span class="f">-d</span> /etc/apt/keyrings
+sudo curl <span class="f">-fsSL</span> https://download.docker.com/linux/ubuntu/gpg <span class="f">-o</span> /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+<span class="k">echo</span> <span class="s">"deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release &amp;&amp; echo $VERSION_CODENAME) stable"</span> \
+  | sudo tee /etc/apt/sources.list.d/docker.list &gt; /dev/null
+sudo apt update
+sudo apt install <span class="f">-y</span> docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+<span class="c"># Run docker without sudo (log out/in or run 'newgrp docker' to apply)</span>
+sudo usermod <span class="f">-aG</span> docker <span class="v">$USER</span>
+sudo systemctl enable <span class="f">--now</span> docker
+
+<span class="c"># Verify</span>
+git <span class="f">--version</span>; gh <span class="f">--version</span>; docker version; docker compose version</pre>
+<div class="note"><span class="lab">Note</span>For stronger isolation, consider <strong>rootless Docker</strong> (<code>dockerd-rootless-setuptool.sh install</code>) so the engine runs under your user without root. Editor: install VS Code with <code>sudo snap install code --classic</code> if a GUI is available.</div>
+
+<h2 id="s3"><span class="n">3</span>One-time configuration</h2>
+<h3>Git identity and line endings</h3>
+<pre>git config <span class="f">--global</span> user.name  <span class="s">"Your Name"</span>
+git config <span class="f">--global</span> user.email <span class="s">"you@example.com"</span>
+git config <span class="f">--global</span> init.defaultBranch main
+git config <span class="f">--global</span> core.autocrlf input    <span class="c"># keep LF; normalize on commit</span>
+git config <span class="f">--global</span> pull.rebase true</pre>
+<p>Commit a <code>.gitattributes</code> with <code>* text=auto eol=lf</code> so endings are consistent across machines.</p>
+<h3>GitHub authentication</h3>
+<pre>gh auth login          <span class="c"># choose HTTPS or SSH; credential stored by gh</span>
+gh auth status</pre>
+<p>SSH alternative:</p>
+<pre>ssh-keygen <span class="f">-t</span> ed25519 <span class="f">-C</span> <span class="s">"you@example.com"</span>
+<span class="k">eval</span> <span class="s">"$(ssh-agent -s)"</span>
+ssh-add ~/.ssh/id_ed25519
+gh ssh-key add ~/.ssh/id_ed25519.pub <span class="f">-t</span> <span class="s">"ubuntu-box"</span></pre>
+<div class="note"><span class="lab">Note</span>Section 3 is performed once per machine. Everything after it is repeatable and identical on each Ubuntu machine.</div>
+
+<h2 id="s4"><span class="n">4</span>Acquire the project (clone)</h2>
+<pre><span class="c"># Consistent location on each machine</span>
+mkdir <span class="f">-p</span> ~/source
+gh repo clone USER/securebank ~/source/securebank
+<span class="k">cd</span> ~/source/securebank
+
+<span class="c"># Local .env from the template (never commit the real .env)</span>
+cp .env.example .env
+<span class="k">nano</span> .env                 <span class="c"># fill in local/fake values</span></pre>
+
+<h2 id="s5"><span class="n">5</span>Run locally</h2>
+<pre><span class="c"># Start the stack</span>
+docker compose up <span class="f">-d</span> <span class="f">--build</span>
+
+<span class="c"># Health check</span>
+curl <span class="f">-fsS</span> http://localhost:8000/health
+
+<span class="c"># Logs / stop</span>
+docker compose logs <span class="f">-f</span>
+docker compose down
+
+<span class="c"># Or use the project's Makefile targets</span>
+make up; make test; make down</pre>
+<h3>Environment variables in bash</h3>
+<pre><span class="c"># Session-only</span>
+<span class="k">export</span> APP_MODE=vulnerable
+
+<span class="c"># Persist for the user (append to ~/.profile or ~/.bashrc)</span>
+<span class="k">echo</span> <span class="s">'export APP_MODE=vulnerable'</span> &gt;&gt; ~/.profile
+
+<span class="c"># Load a .env file into the current shell</span>
+<span class="k">set</span> <span class="f">-a</span>; <span class="k">source</span> .env; <span class="k">set</span> +a</pre>
+
+<h2 id="s6"><span class="n">6</span>Secrets &amp; configuration</h2>
+<table>
+  <thead><tr><th style="width:26%">Scope</th><th style="width:36%">Mechanism</th><th>Rule</th></tr></thead>
+  <tbody>
+    <tr><td>Local app config</td><td><code>.env</code> file (gitignored)</td><td>Fake/local values only; never commit.</td></tr>
+    <tr><td>Local secret storage</td><td><code>pass</code> (GPG-backed) or <code>libsecret</code>/GNOME keyring</td><td>Encrypted per-user store.</td></tr>
+    <tr><td>CI secrets</td><td><code>gh secret set</code></td><td>Repository or organization scope.</td></tr>
+    <tr><td>Per-environment secrets</td><td><code>gh secret set NAME --env production</code></td><td>Scoped to a GitHub Environment with approvals.</td></tr>
+  </tbody>
+</table>
+<pre><span class="c"># Optional encrypted local store (pass)</span>
+sudo apt install <span class="f">-y</span> pass
+pass init <span class="s">"your-gpg-id"</span>
+pass insert securebank/ghcr-token
+<span class="v">TOKEN</span>=$(pass securebank/ghcr-token)
+
+<span class="c"># Push a secret to GitHub for the pipeline</span>
+gh secret set DATABASE_URL <span class="f">--body</span> <span class="s">"postgresql://..."</span></pre>
+<div class="note caution"><span class="lab">Caution</span>Keep <code>.env</code> gitignored and out of shell history you commit. Store real credentials in <code>pass</code>/keyring or GitHub secrets. Prefer OIDC for cloud deploys over long-lived stored tokens (see <code>OAuth-OIDC-JWT.html</code>, <code>Secret-Scanning.html</code>).</div>
+
+<h2 id="s7"><span class="n">7</span>Synchronize across machines</h2>
+<pre><span class="c"># Start of a session</span>
+git fetch origin
+git status
+git pull <span class="f">--rebase</span>
+
+<span class="c"># ... make changes ...</span>
+git add <span class="f">-A</span>
+git commit <span class="f">-m</span> <span class="s">"describe the change"</span>
+git push
+
+<span class="c"># On the other machine</span>
+git pull <span class="f">--rebase</span></pre>
+<table>
+  <thead><tr><th style="width:30%">Situation</th><th>Handling</th></tr></thead>
+  <tbody>
+    <tr><td>Uncommitted work when pulling</td><td><code>git stash</code> → <code>git pull --rebase</code> → <code>git stash pop</code></td></tr>
+    <tr><td>Both machines changed <code>main</code></td><td><code>git pull --rebase</code>; resolve conflicts; <code>git rebase --continue</code></td></tr>
+    <tr><td>Check divergence</td><td><code>git log --oneline --graph origin/main..HEAD</code></td></tr>
+    <tr><td>Discard local, match remote (destructive)</td><td><code>git reset --hard origin/main</code></td></tr>
+  </tbody>
+</table>
+<p>Prefer feature branches and PRs over direct commits to <code>main</code>; the <code>sync.sh</code> helper (Section 11) wraps the safe fetch/stash/pull sequence and is driven by a systemd timer in Section 10.</p>
+
+<h2 id="s8"><span class="n">8</span>Remote repo &amp; pipeline control</h2>
+<p>The GitHub CLI operates the remote entirely from the terminal &mdash; identical to the Windows runbook.</p>
+<pre><span class="c"># Branches &amp; pull requests</span>
+git switch <span class="f">-c</span> feat/x &amp;&amp; git push <span class="f">-u</span> origin feat/x
+gh pr create <span class="f">--fill</span>
+gh pr status
+gh pr merge <span class="f">--squash</span> <span class="f">--delete-branch</span>
+
+<span class="c"># Pipelines</span>
+gh run list
+gh run watch                         <span class="c"># live status of the latest run</span>
+gh run view <span class="f">--log</span>
+gh run view <span class="f">--log-failed</span>
+gh run rerun &lt;run-id&gt;
+gh workflow run release.yml          <span class="c"># trigger a workflow_dispatch</span>
+
+<span class="c"># Repository administration</span>
+gh secret list
+gh run download &lt;run-id&gt; <span class="f">-n</span> sbom
+gh release create v1.0.0 <span class="f">--generate-notes</span></pre>
+
+<h2 id="s9"><span class="n">9</span>Deploy</h2>
+<h3>Pipeline-driven (recommended)</h3>
+<pre>gh workflow run release.yml <span class="f">-f</span> environment=production
+gh run watch</pre>
+<p>Deployment to a protected GitHub <strong>Environment</strong> pauses for approval; the pipeline deploys an immutable, SHA-tagged image.</p>
+<h3>Manual image build and publish</h3>
+<pre><span class="v">IMG</span>=<span class="s">"ghcr.io/USER/securebank:$(git rev-parse --short HEAD)"</span>
+docker build <span class="f">-t</span> <span class="s">"$IMG"</span> ./application/backend
+<span class="k">echo</span> <span class="s">"$(pass securebank/ghcr-token)"</span> | docker login ghcr.io <span class="f">-u</span> USER <span class="f">--password-stdin</span>
+docker push <span class="s">"$IMG"</span></pre>
+<h3>Remote deploy over SSH</h3>
+<pre>ssh deployer@deploy-host <span class="s">'bash -s'</span> &lt;&lt;<span class="s">'EOF'</span>
+  cd /srv/securebank
+  git pull --rebase
+  docker compose -f docker-compose.yml -f compose.prod.yml pull
+  docker compose -f docker-compose.yml -f compose.prod.yml up -d
+EOF</pre>
+<h3>Run the stack at boot (systemd service)</h3>
+<pre><span class="c"># /etc/systemd/system/securebank.service</span>
+[Unit]
+Description=SecureBank stack
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/srv/securebank
+ExecStart=/usr/bin/docker compose up -d
+ExecStop=/usr/bin/docker compose down
+
+[Install]
+WantedBy=multi-user.target</pre>
+<pre>sudo systemctl daemon-reload
+sudo systemctl enable <span class="f">--now</span> securebank.service</pre>
+
+<h2 id="s10"><span class="n">10</span>Continuous management</h2>
+<p>Use <strong>systemd timers</strong> (preferred on Ubuntu) for scheduled sync, maintenance and health
+checks. User timers need no root; enable lingering so they run without an active login.</p>
+<h3>Scheduled auto-sync (user timer)</h3>
+<pre><span class="c"># ~/.config/systemd/user/securebank-sync.service</span>
+[Unit]
+Description=Sync securebank from origin
+[Service]
+Type=oneshot
+ExecStart=%h/source/securebank/scripts/sync.sh
+
+<span class="c"># ~/.config/systemd/user/securebank-sync.timer</span>
+[Unit]
+Description=Daily securebank sync
+[Timer]
+OnCalendar=daily
+Persistent=true
+[Install]
+WantedBy=timers.target</pre>
+<pre>loginctl enable-linger <span class="v">$USER</span>                 <span class="c"># run user timers without a session</span>
+systemctl <span class="f">--user</span> daemon-reload
+systemctl <span class="f">--user</span> enable <span class="f">--now</span> securebank-sync.timer
+systemctl <span class="f">--user</span> list-timers</pre>
+<h3>Routine maintenance</h3>
+<table>
+  <thead><tr><th style="width:34%">Task</th><th>Command</th></tr></thead>
+  <tbody>
+    <tr><td>OS package updates</td><td><code>sudo apt update &amp;&amp; sudo apt upgrade -y</code> (or enable <code>unattended-upgrades</code>)</td></tr>
+    <tr><td>Refresh base/app images</td><td><code>docker compose pull &amp;&amp; docker compose up -d</code></td></tr>
+    <tr><td>Prune unused Docker data</td><td><code>docker system prune -f</code></td></tr>
+    <tr><td>Dependency updates</td><td>Dependabot/Renovate PRs; review with <code>gh pr list</code></td></tr>
+    <tr><td>Health probe</td><td><code>curl -fsS http://localhost:8000/health</code></td></tr>
+    <tr><td>Scheduled scans</td><td><code>gh workflow run dast.yml</code> (or local <code>scan.sh</code>)</td></tr>
+    <tr><td>Inspect timer logs</td><td><code>journalctl --user -u securebank-sync.service</code></td></tr>
+  </tbody>
+</table>
+<h3>Health monitor (restart if unhealthy)</h3>
+<pre><span class="c">#!/usr/bin/env bash</span>
+<span class="k">if</span> ! curl <span class="f">-fsS</span> http://localhost:8000/health &gt; /dev/null; <span class="k">then</span>
+  docker compose restart api
+  <span class="k">echo</span> <span class="s">"$(date -Is) restarted api"</span> &gt;&gt; ~/source/securebank/logs/health.log
+<span class="k">fi</span></pre>
+<p>Enable OS auto-patching: <code>sudo apt install unattended-upgrades &amp;&amp; sudo dpkg-reconfigure --priority=low unattended-upgrades</code>.</p>
+
+<h2 id="s11"><span class="n">11</span>Helper scripts</h2>
+<p>Keep operational scripts in <code>scripts/</code> in the repo so both machines share them; make them
+executable (<code>chmod +x</code>). They complement the <code>Makefile</code> targets.</p>
+<table>
+  <thead><tr><th style="width:24%">Script</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td><code>setup.sh</code></td><td>Install toolchain (apt), configure git/gh, create <code>.env</code>.</td></tr>
+    <tr><td><code>sync.sh</code></td><td>Safe fetch → stash → pull --rebase → stash pop.</td></tr>
+    <tr><td><code>up.sh</code> / <code>down.sh</code></td><td>Start / stop the compose stack.</td></tr>
+    <tr><td><code>deploy.sh</code></td><td>Build, tag by SHA, push to GHCR, trigger/await the release.</td></tr>
+    <tr><td><code>scan.sh</code></td><td>Run local scanners into <code>reports/</code>.</td></tr>
+  </tbody>
+</table>
+<pre><span class="c">#!/usr/bin/env bash</span>
+<span class="c"># scripts/sync.sh — safe synchronization</span>
+<span class="k">set</span> <span class="f">-euo</span> pipefail
+<span class="k">cd</span> <span class="s">"$(dirname "$0")/.."</span>
+dirty=$(git status <span class="f">--porcelain</span>)
+[ <span class="f">-n</span> <span class="s">"$dirty"</span> ] &amp;&amp; git stash push <span class="f">-u</span> <span class="f">-m</span> sync-autostash || <span class="k">true</span>
+git fetch origin
+git pull <span class="f">--rebase</span> origin <span class="s">"$(git rev-parse --abbrev-ref HEAD)"</span>
+[ <span class="f">-n</span> <span class="s">"$dirty"</span> ] &amp;&amp; git stash pop || <span class="k">true</span>
+<span class="k">echo</span> <span class="s">"Synced $(git rev-parse --short HEAD)"</span></pre>
+<div class="note"><span class="lab">Note</span><code>set -euo pipefail</code> makes scripts fail fast so systemd timers and CI detect errors. Mark scripts executable and keep them idempotent and safe to re-run.</div>
+
+<h2 id="s12"><span class="n">12</span>Troubleshooting</h2>
+<table>
+  <thead><tr><th style="width:34%">Symptom</th><th>Cause / resolution</th></tr></thead>
+  <tbody>
+    <tr><td><code>permission denied</code> on docker socket</td><td>User not in the <code>docker</code> group. <code>sudo usermod -aG docker $USER</code>, then re-login or <code>newgrp docker</code>.</td></tr>
+    <tr><td><code>Cannot connect to the Docker daemon</code></td><td>Engine not running. <code>sudo systemctl enable --now docker</code>.</td></tr>
+    <tr><td>Port 8000 already in use</td><td><code>sudo ss -ltnp | grep :8000</code> → stop the owner or change the mapped port.</td></tr>
+    <tr><td>Script not executable</td><td><code>chmod +x scripts/*.sh</code>; run with <code>./scripts/sync.sh</code> or <code>bash scripts/sync.sh</code>.</td></tr>
+    <tr><td>User timer did not fire</td><td>Enable lingering: <code>loginctl enable-linger $USER</code>; check <code>systemctl --user list-timers</code> and <code>journalctl --user -u ...</code>.</td></tr>
+    <tr><td><code>gh: not authenticated</code></td><td><code>gh auth login</code> / <code>gh auth status</code>.</td></tr>
+    <tr><td>Rebase conflict during pull</td><td>Resolve files, <code>git add</code>, <code>git rebase --continue</code>; or <code>git rebase --abort</code>.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="s13"><span class="n">13</span>Command reference</h2>
+<div class="cols">
+  <div>
+    <h3>Setup &amp; config</h3>
+    <ul style="font-size:9pt;">
+      <li><code>sudo apt install -y git make curl gh</code></li>
+      <li><code>sudo apt install -y docker-ce docker-compose-plugin</code></li>
+      <li><code>sudo usermod -aG docker $USER</code></li>
+      <li><code>gh auth login</code></li>
+      <li><code>git config --global user.name/email</code></li>
+    </ul>
+    <h3>Run</h3>
+    <ul style="font-size:9pt;">
+      <li><code>gh repo clone USER/securebank</code></li>
+      <li><code>cp .env.example .env</code></li>
+      <li><code>docker compose up -d --build</code></li>
+      <li><code>curl -fsS http://localhost:8000/health</code></li>
+    </ul>
+    <h3>Sync</h3>
+    <ul style="font-size:9pt;">
+      <li><code>git pull --rebase</code> / <code>git push</code></li>
+      <li><code>git stash</code> / <code>git stash pop</code></li>
+      <li><code>./scripts/sync.sh</code></li>
+    </ul>
+  </div>
+  <div>
+    <h3>Remote &amp; pipeline</h3>
+    <ul style="font-size:9pt;">
+      <li><code>gh pr create --fill</code> / <code>gh pr merge</code></li>
+      <li><code>gh run watch</code> / <code>gh run view --log-failed</code></li>
+      <li><code>gh workflow run release.yml</code></li>
+      <li><code>gh secret set NAME --env production</code></li>
+      <li><code>gh release create vX --generate-notes</code></li>
+    </ul>
+    <h3>Deploy &amp; maintain</h3>
+    <ul style="font-size:9pt;">
+      <li><code>docker build/push ghcr.io/...:&lt;sha&gt;</code></li>
+      <li><code>ssh host 'bash -s' &lt;&lt; EOF ... EOF</code></li>
+      <li><code>systemctl enable --now securebank.service</code></li>
+      <li><code>systemctl --user enable --now ...timer</code></li>
+      <li><code>sudo apt upgrade -y; docker compose pull</code></li>
+    </ul>
+  </div>
+</div>
+
+<h3>References</h3>
+<ul class="ref">
+  <li>Ubuntu Server documentation; <code>apt</code> package management</li>
+  <li>Docker Engine install on Ubuntu; rootless mode</li>
+  <li>GitHub CLI (<code>gh</code>) manual; Git documentation</li>
+  <li>systemd <code>systemctl</code> / <code>journalctl</code> / timer units; <code>loginctl enable-linger</code></li>
+  <li><code>pass</code> (the standard unix password manager); unattended-upgrades</li>
+  <li>Companion docs: <code>Windows-PowerShell-Operations.html</code>, <code>GitHub-Project-Delivery.html</code>, <code>CICD-Security.html</code>; project at <code>appsec/project/</code></li>
+</ul>
+
+<footer>Project Operations on Ubuntu Linux &mdash; operations runbook. Commands target Ubuntu 22.04/24.04 LTS with bash; most apply to Debian-family distributions. Product names are cited for identification only.</footer>
+
+</div>
+</body>
+</html>

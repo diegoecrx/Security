@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project Operations on Windows 11 with PowerShell</title>
+<style>
+  :root{
+    --ink:#15181d; --ink2:#3d434d; --muted:#6b7280;
+    --line:#e4e7eb; --rule:#cfd4da; --surface:#ffffff; --plane:#f6f7f9;
+    --accent:#1f4e79; --accent2:#2d6ca8;
+    --note:#1f4e79; --caution:#9a6a00; --warn-bg:#fbf4e6;
+    --code-bg:#1b1f26; --code-ink:#e6e9ee; --ok:#1a7f37; --bad:#c0392b;
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-print-color-adjust:exact; print-color-adjust:exact;}
+  body{margin:0; color:var(--ink); background:var(--plane); font-family:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif; font-size:10.4pt; line-height:1.52;}
+  .doc{max-width:200mm; margin:0 auto; background:var(--surface); padding:0 18mm 16mm; box-shadow:0 1px 16px rgba(0,0,0,.06);}
+  @media screen{ body{padding:8mm 0;} }
+  @page{ size:A4; margin:18mm 16mm; }
+  @media print{ .doc{max-width:none; margin:0; padding:0; box-shadow:none;} }
+  h1,h2,h3{font-weight:600; color:var(--ink); line-height:1.25;}
+  h2{font-size:14.5pt; margin:9mm 0 2.5mm; padding-top:2mm; color:var(--accent); border-top:2px solid var(--accent);}
+  h2 .n{color:var(--accent2); font-weight:700; margin-right:2mm;}
+  h3{font-size:11.2pt; margin:5mm 0 1.5mm; color:var(--ink);}
+  p{margin:0 0 2.6mm;} a{color:var(--accent2); text-decoration:none;}
+  ul,ol{margin:0 0 2.8mm; padding-left:5.5mm;} li{margin:0 0 1.1mm;}
+  strong{font-weight:600;} code{font-family:"Cascadia Code",Consolas,monospace; font-size:9pt; background:#eef1f4; padding:.2mm 1.2mm; border-radius:2px;}
+  .lede{font-size:10.6pt; color:var(--ink2);}
+  header.title{border-bottom:3px solid var(--accent); padding:14mm 0 6mm; margin-bottom:2mm;}
+  header.title .cat{font-size:8.5pt; letter-spacing:.18em; text-transform:uppercase; color:var(--accent2); font-weight:700;}
+  header.title h1{font-size:23pt; margin:3mm 0 2mm; letter-spacing:-.3pt; color:var(--ink);}
+  header.title .scope{font-size:11pt; color:var(--ink2); max-width:158mm;}
+  header.title .meta{margin-top:5mm; font-size:8.6pt; color:var(--muted); display:flex; gap:7mm; flex-wrap:wrap;}
+  header.title .meta b{color:var(--ink2); font-weight:600;}
+  .toc{background:var(--plane); border:1px solid var(--line); border-radius:4px; padding:4mm 6mm; margin:5mm 0 2mm; columns:2; column-gap:10mm; font-size:9.3pt;}
+  .toc a{display:block; color:var(--ink2); padding:.8mm 0; break-inside:avoid;}
+  .toc a .n{color:var(--accent2); font-weight:600; display:inline-block; width:6mm;}
+  table{width:100%; border-collapse:collapse; font-size:9.1pt; margin:2.5mm 0 4mm;}
+  caption{caption-side:top; text-align:left; font-size:8.6pt; color:var(--muted); margin-bottom:1.5mm; font-style:italic;}
+  th,td{text-align:left; padding:2.1mm 2.6mm; border:1px solid var(--line); vertical-align:top;}
+  thead th{background:var(--accent); color:#fff; font-weight:600; font-size:8.5pt; letter-spacing:.02em; border-color:var(--accent);}
+  tbody tr:nth-child(even){background:var(--plane);}
+  td code, th code{background:#eef1f4;}
+  pre{background:var(--code-bg); color:var(--code-ink); border-radius:4px; padding:4mm 5mm; font-family:"Cascadia Code",Consolas,monospace; font-size:8.5pt; line-height:1.5; margin:2.5mm 0; white-space:pre-wrap; word-break:break-word;}
+  pre .c{color:#8b94a3;} pre .k{color:#7cc5ff;} pre .s{color:#9ee493;} pre .f{color:#f0c674;} pre .v{color:#e3a7cf;} pre .bad{color:#ff8f8f;} pre .ok{color:#8ce39a;}
+  .note{border-left:3px solid var(--note); background:#eef3f9; padding:3mm 4mm; margin:3mm 0; font-size:9.6pt; border-radius:0 3px 3px 0;}
+  .note.caution{border-color:var(--caution); background:var(--warn-bg);}
+  .note .lab{font-weight:700; color:var(--note); text-transform:uppercase; font-size:8pt; letter-spacing:.06em; margin-right:1.5mm;}
+  .note.caution .lab{color:var(--caution);}
+  .cols{display:grid; grid-template-columns:1fr 1fr; gap:6mm;}
+  .tag{display:inline-block; font-size:7.6pt; font-weight:700; padding:.5mm 1.8mm; border-radius:2px; color:#fff; vertical-align:middle;}
+  .ref{font-size:9pt;} .ref li{margin-bottom:1.6mm;}
+  footer{margin-top:9mm; padding-top:3mm; border-top:1px solid var(--line); font-size:8.2pt; color:var(--muted);}
+  h2{break-after:avoid;} table,pre,.note{break-inside:avoid;}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<header class="title">
+  <div class="cat">Operations &middot; Runbook</div>
+  <h1>Project Operations on Windows 11 with PowerShell</h1>
+  <div class="scope">Install, configure, run, sync, deploy and continuously manage a GitHub-hosted project &mdash; locally and remotely &mdash; using PowerShell on Windows 11. Covers the toolchain (winget), Git/GitHub configuration, running the container stack, secrets, multi-machine synchronization, remote repository and pipeline control via the GitHub CLI, deployment, and scheduled continuous management.</div>
+  <div class="meta"><span><b>OS</b> Windows 11</span><span><b>Shell</b> PowerShell 7 (pwsh)</span><span><b>Tooling</b> winget, git, gh, container engine</span><span><b>Model</b> WSL-free</span></div>
+</header>
+
+<nav class="toc">
+  <a href="#s1"><span class="n">1</span>Scope &amp; operating model</a>
+  <a href="#s2"><span class="n">2</span>Toolchain installation (winget)</a>
+  <a href="#s3"><span class="n">3</span>One-time configuration</a>
+  <a href="#s4"><span class="n">4</span>Acquire the project (clone)</a>
+  <a href="#s5"><span class="n">5</span>Run locally</a>
+  <a href="#s6"><span class="n">6</span>Secrets &amp; configuration</a>
+  <a href="#s7"><span class="n">7</span>Synchronize across machines</a>
+  <a href="#s8"><span class="n">8</span>Remote repo &amp; pipeline control</a>
+  <a href="#s9"><span class="n">9</span>Deploy</a>
+  <a href="#s10"><span class="n">10</span>Continuous management</a>
+  <a href="#s11"><span class="n">11</span>Helper scripts</a>
+  <a href="#s12"><span class="n">12</span>Troubleshooting</a>
+  <a href="#s13"><span class="n">13</span>Command reference</a>
+</nav>
+
+<h2 id="s1"><span class="n">1</span>Scope &amp; operating model</h2>
+<p>This runbook operates the SecureBank project (or any equivalent GitHub repository) entirely
+from PowerShell on Windows 11. The lifecycle is: <strong>install the toolchain → configure
+Git/GitHub → clone → run locally → manage secrets → synchronize between machines → control
+the remote repo and pipelines → deploy → continuously manage</strong>.</p>
+<table>
+  <thead><tr><th style="width:26%">Element</th><th>Choice</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Shell</strong></td><td>PowerShell 7 (<code>pwsh</code>). Windows PowerShell 5.1 works for most commands; v7 is recommended for consistency with cross-platform scripting.</td></tr>
+    <tr><td><strong>Package manager</strong></td><td><code>winget</code> (App Installer, built into Windows 11).</td></tr>
+    <tr><td><strong>Source control</strong></td><td>Git + GitHub; remote <code>origin</code> is the single source of truth across machines.</td></tr>
+    <tr><td><strong>Remote control</strong></td><td>GitHub CLI (<code>gh</code>) for repos, PRs, secrets, workflows, releases.</td></tr>
+    <tr><td><strong>Runtime</strong></td><td>A container engine for local runs; optional if images are built only in CI.</td></tr>
+  </tbody>
+</table>
+<div class="note caution"><span class="lab">WSL-free</span>This runbook does not use WSL. Container engines on Windows normally require WSL2 or Hyper-V; see Section 2 for WSL-free engine options (Hyper-V backend, Podman, or CI-only builds). All Git/GitHub operations are native PowerShell and require no container engine at all.</div>
+
+<h2 id="s2"><span class="n">2</span>Toolchain installation (winget)</h2>
+<p>Run in an elevated PowerShell for machine-wide installs (Start → "PowerShell" → Run as administrator), or omit elevation for user-scope packages.</p>
+<pre><span class="c"># Core toolchain</span>
+winget install <span class="f">--id</span> Microsoft.PowerShell <span class="f">-e</span>          <span class="c"># PowerShell 7 (pwsh)</span>
+winget install <span class="f">--id</span> Git.Git <span class="f">-e</span>
+winget install <span class="f">--id</span> GitHub.cli <span class="f">-e</span>                      <span class="c"># gh</span>
+winget install <span class="f">--id</span> Microsoft.VisualStudioCode <span class="f">-e</span>
+
+<span class="c"># 'make' is optional on Windows (PowerShell scripts in Section 11 replace it)</span>
+winget install <span class="f">--id</span> ezwinports.make <span class="f">-e</span>
+
+<span class="c"># Verify</span>
+pwsh <span class="f">-v</span>; git <span class="f">--version</span>; gh <span class="f">--version</span></pre>
+<h3>Container engine (choose one; WSL-free options first)</h3>
+<table>
+  <thead><tr><th style="width:30%">Option</th><th>Install / note</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Docker Desktop (Hyper-V backend)</strong></td><td><code>winget install --id Docker.DockerDesktop -e</code>, then in Settings disable the WSL2 engine and enable the Hyper-V backend (requires Hyper-V/Windows Pro).</td></tr>
+    <tr><td><strong>Podman</strong></td><td><code>winget install --id RedHat.Podman -e</code>; <code>podman machine init --provider hyperv</code> to avoid WSL. Docker-compatible CLI.</td></tr>
+    <tr><td><strong>No local engine (CI-only)</strong></td><td>Skip a local engine entirely; build and run images in GitHub Actions. Develop the app natively (Python/Node installed via winget) and use the pipeline for containers.</td></tr>
+  </tbody>
+</table>
+<div class="note"><span class="lab">Note</span>After installing, close and reopen PowerShell so <code>PATH</code> updates. Check what is available with <code>winget list</code>. Update everything later with <code>winget upgrade --all</code> (Section 10).</div>
+
+<h2 id="s3"><span class="n">3</span>One-time configuration</h2>
+<h3>PowerShell execution policy</h3>
+<pre><span class="c"># Allow local scripts (signed remote) for the current user</span>
+Set-ExecutionPolicy <span class="f">-Scope</span> CurrentUser RemoteSigned</pre>
+<h3>Git identity and cross-platform line endings</h3>
+<pre>git config <span class="f">--global</span> user.name  <span class="s">"Your Name"</span>
+git config <span class="f">--global</span> user.email <span class="s">"you@example.com"</span>
+git config <span class="f">--global</span> init.defaultBranch main
+git config <span class="f">--global</span> core.autocrlf input    <span class="c"># don't rewrite LF to CRLF on commit</span>
+git config <span class="f">--global</span> pull.rebase true      <span class="c"># linear history on pull</span></pre>
+<p>Commit a <code>.gitattributes</code> with <code>* text=auto eol=lf</code> so line endings are consistent across your two machines regardless of local settings.</p>
+<h3>GitHub authentication</h3>
+<pre><span class="c"># Interactive: choose HTTPS or SSH; gh stores the credential securely</span>
+gh auth login
+gh auth status</pre>
+<p>SSH alternative (built-in OpenSSH on Windows 11):</p>
+<pre>ssh-keygen <span class="f">-t</span> ed25519 <span class="f">-C</span> <span class="s">"you@example.com"</span>
+Get-Service ssh-agent | Set-Service <span class="f">-StartupType</span> Automatic
+Start-Service ssh-agent
+ssh-add <span class="v">$env:USERPROFILE</span>\.ssh\id_ed25519
+gh ssh-key add <span class="v">$env:USERPROFILE</span>\.ssh\id_ed25519.pub <span class="f">-t</span> <span class="s">"win11-main"</span></pre>
+<div class="note"><span class="lab">Note</span>Perform Section 3 once per machine. Everything else (clone, run, sync) is repeatable and identical on both your machines.</div>
+
+<h2 id="s4"><span class="n">4</span>Acquire the project (clone)</h2>
+<pre><span class="c"># Pick a consistent location on each machine</span>
+<span class="v">$root</span> = <span class="s">"$env:USERPROFILE\source\securebank"</span>
+New-Item <span class="f">-ItemType</span> Directory <span class="f">-Force</span> (Split-Path <span class="v">$root</span>) | Out-Null
+
+<span class="c"># Clone with the GitHub CLI (or: git clone git@github.com:USER/securebank.git $root)</span>
+gh repo clone USER/securebank <span class="v">$root</span>
+Set-Location <span class="v">$root</span>
+
+<span class="c"># Create the local .env from the template (never commit the real .env)</span>
+Copy-Item .env.example .env
+notepad .env                      <span class="c"># fill in local/fake values</span></pre>
+
+<h2 id="s5"><span class="n">5</span>Run locally</h2>
+<pre><span class="c"># Start the stack (Docker or Podman; 'docker compose' works with both CLIs)</span>
+docker compose up <span class="f">-d</span> <span class="f">--build</span>
+
+<span class="c"># Check health</span>
+Invoke-RestMethod http://localhost:8000/health
+
+<span class="c"># Follow logs / stop</span>
+docker compose logs <span class="f">-f</span>
+docker compose down</pre>
+<h3>Environment variables in PowerShell</h3>
+<pre><span class="c"># Session-only</span>
+<span class="v">$env:APP_MODE</span> = <span class="s">"vulnerable"</span>
+
+<span class="c"># Persist for the user (survives new sessions)</span>
+[Environment]::SetEnvironmentVariable(<span class="s">"APP_MODE"</span>, <span class="s">"vulnerable"</span>, <span class="s">"User"</span>)
+
+<span class="c"># Load a .env file into the current session (simple parser)</span>
+Get-Content .env | Where-Object { <span class="v">$_</span> <span class="f">-match</span> <span class="s">'^\s*[^#].*='</span> } | ForEach-Object {
+  <span class="v">$k</span>,<span class="v">$v</span> = <span class="v">$_</span>.Split(<span class="s">'='</span>, 2); <span class="v">$env:</span>$($k.Trim()) = <span class="v">$v</span>.Trim()
+}</pre>
+<p>If <code>make</code> is installed, the project's targets work in PowerShell too: <code>make up</code>, <code>make test</code>. Otherwise use the <code>.ps1</code> wrappers in Section 11.</p>
+
+<h2 id="s6"><span class="n">6</span>Secrets &amp; configuration</h2>
+<table>
+  <thead><tr><th style="width:26%">Scope</th><th style="width:36%">Mechanism (PowerShell)</th><th>Rule</th></tr></thead>
+  <tbody>
+    <tr><td>Local app config</td><td><code>.env</code> file (gitignored)</td><td>Fake/local values only; never commit.</td></tr>
+    <tr><td>Local secret storage</td><td>PowerShell <strong>SecretManagement</strong> + SecretStore modules</td><td>Encrypted per-user vault (DPAPI-backed).</td></tr>
+    <tr><td>CI secrets</td><td><code>gh secret set</code></td><td>Repository or organization scope.</td></tr>
+    <tr><td>Per-environment secrets</td><td><code>gh secret set NAME --env production</code></td><td>Scoped to a GitHub Environment with approvals.</td></tr>
+  </tbody>
+</table>
+<pre><span class="c"># Optional encrypted local vault for developer secrets</span>
+Install-Module Microsoft.PowerShell.SecretManagement, Microsoft.PowerShell.SecretStore <span class="f">-Scope</span> CurrentUser
+Register-SecretVault <span class="f">-Name</span> LocalStore <span class="f">-ModuleName</span> Microsoft.PowerShell.SecretStore <span class="f">-DefaultVault</span>
+Set-Secret <span class="f">-Name</span> GHCR_TOKEN <span class="f">-Secret</span> <span class="s">"ghp_xxx"</span>
+<span class="v">$token</span> = Get-Secret GHCR_TOKEN <span class="f">-AsPlainText</span>
+
+<span class="c"># Push a secret to GitHub for the pipeline</span>
+gh secret set DATABASE_URL <span class="f">--body</span> <span class="s">"postgresql://..."</span></pre>
+<div class="note caution"><span class="lab">Caution</span>Never place real secrets in <code>.env</code>, scripts, or command history you commit. Keep <code>.env</code> gitignored; store real credentials in the SecretStore vault or in GitHub secrets. Prefer OIDC for cloud deploys over long-lived stored tokens (see <code>OAuth-OIDC-JWT.html</code>, <code>Secret-Scanning.html</code>).</div>
+
+<h2 id="s7"><span class="n">7</span>Synchronize across machines</h2>
+<p>The remote is authoritative. Each machine pulls before work and pushes after. The flow
+below keeps a main machine and a personal machine in step.</p>
+<pre><span class="c"># Start of a session: get the latest</span>
+git fetch origin
+git status
+git pull <span class="f">--rebase</span>
+
+<span class="c"># ... make changes ...</span>
+git add <span class="f">-A</span>
+git commit <span class="f">-m</span> <span class="s">"describe the change"</span>
+git push
+
+<span class="c"># On the other machine: replicate</span>
+git pull <span class="f">--rebase</span></pre>
+<table>
+  <thead><tr><th style="width:30%">Situation</th><th>PowerShell / git handling</th></tr></thead>
+  <tbody>
+    <tr><td>Uncommitted local work when pulling</td><td><code>git stash</code> → <code>git pull --rebase</code> → <code>git stash pop</code></td></tr>
+    <tr><td>Both machines changed <code>main</code></td><td><code>git pull --rebase</code> replays local commits on top; resolve any conflict, then <code>git rebase --continue</code></td></tr>
+    <tr><td>Check divergence</td><td><code>git log --oneline --graph origin/main..HEAD</code></td></tr>
+    <tr><td>Discard local and match remote (destructive)</td><td><code>git reset --hard origin/main</code> &mdash; use deliberately</td></tr>
+  </tbody>
+</table>
+<div class="note"><span class="lab">Note</span>Use feature branches and PRs rather than committing directly to <code>main</code>; this isolates in-progress work per machine and exercises the CI gates. The <code>sync.ps1</code> helper (Section 11) wraps the safe fetch/stash/pull sequence.</div>
+
+<h2 id="s8"><span class="n">8</span>Remote repo &amp; pipeline control</h2>
+<p>The GitHub CLI manages the remote entirely from PowerShell &mdash; no browser needed.</p>
+<pre><span class="c"># Branches &amp; pull requests</span>
+git switch <span class="f">-c</span> feat/x; git push <span class="f">-u</span> origin feat/x
+gh pr create <span class="f">--fill</span>
+gh pr status
+gh pr merge <span class="f">--squash</span> <span class="f">--delete-branch</span>
+
+<span class="c"># Pipelines: list, watch, inspect, re-run</span>
+gh run list
+gh run watch                         <span class="c"># live status of the latest run</span>
+gh run view <span class="f">--log</span>                     <span class="c"># retrieve logs</span>
+gh run view <span class="f">--log-failed</span>
+gh run rerun &lt;run-id&gt;
+gh workflow run release.yml          <span class="c"># trigger a workflow_dispatch</span>
+
+<span class="c"># Repository administration</span>
+gh repo view <span class="f">--web</span>
+gh secret list
+gh release create v1.0.0 <span class="f">--generate-notes</span></pre>
+<table>
+  <thead><tr><th style="width:34%">Task</th><th>Command</th></tr></thead>
+  <tbody>
+    <tr><td>Open a PR for the current branch</td><td><code>gh pr create --fill</code></td></tr>
+    <tr><td>Watch the current pipeline</td><td><code>gh run watch</code></td></tr>
+    <tr><td>Retrieve failed-step logs</td><td><code>gh run view --log-failed</code></td></tr>
+    <tr><td>Trigger a deploy workflow</td><td><code>gh workflow run release.yml -f environment=production</code></td></tr>
+    <tr><td>Download a build artifact/SBOM</td><td><code>gh run download &lt;run-id&gt; -n sbom</code></td></tr>
+  </tbody>
+</table>
+
+<h2 id="s9"><span class="n">9</span>Deploy</h2>
+<h3>Pipeline-driven (recommended)</h3>
+<pre><span class="c"># Trigger the release workflow; it builds, pushes to GHCR, and deploys</span>
+gh workflow run release.yml <span class="f">-f</span> environment=production
+gh run watch</pre>
+<p>Deployment to a protected GitHub <strong>Environment</strong> pauses for approval; approve from
+<code>gh</code> or the web UI. The pipeline deploys an immutable, SHA-tagged image.</p>
+<h3>Manual image build and publish from PowerShell</h3>
+<pre><span class="v">$img</span> = <span class="s">"ghcr.io/USER/securebank:$(git rev-parse --short HEAD)"</span>
+docker build <span class="f">-t</span> <span class="v">$img</span> .\application\backend
+<span class="v">$env:CR_PAT</span> = Get-Secret GHCR_TOKEN <span class="f">-AsPlainText</span>
+<span class="v">$env:CR_PAT</span> | docker login ghcr.io <span class="f">-u</span> USER <span class="f">--password-stdin</span>
+docker push <span class="v">$img</span></pre>
+<h3>Deploy to a remote host over PowerShell Remoting (WinRM/SSH)</h3>
+<pre><span class="c"># Run deployment commands on a remote Windows host</span>
+<span class="v">$s</span> = New-PSSession <span class="f">-HostName</span> deploy-host <span class="f">-UserName</span> deployer   <span class="c"># SSH transport</span>
+Invoke-Command <span class="f">-Session</span> <span class="v">$s</span> <span class="f">-ScriptBlock</span> {
+  Set-Location C:\apps\securebank
+  git pull <span class="f">--rebase</span>
+  docker pull <span class="v">$using:img</span>
+  docker compose <span class="f">-f</span> docker-compose.yml <span class="f">-f</span> compose.prod.yml up <span class="f">-d</span>
+}
+Remove-PSSession <span class="v">$s</span></pre>
+
+<h2 id="s10"><span class="n">10</span>Continuous management</h2>
+<p>Keep both machines current, the stack healthy, and dependencies patched &mdash; scheduled with
+Windows Task Scheduler driven by PowerShell.</p>
+<h3>Scheduled auto-sync (pull latest on a schedule)</h3>
+<pre><span class="v">$action</span>  = New-ScheduledTaskAction <span class="f">-Execute</span> <span class="s">"pwsh"</span> `
+  <span class="f">-Argument</span> <span class="s">'-NoProfile -File C:\Users\You\source\securebank\scripts\sync.ps1'</span>
+<span class="v">$trigger</span> = New-ScheduledTaskTrigger <span class="f">-Daily</span> <span class="f">-At</span> 8am
+Register-ScheduledTask <span class="f">-TaskName</span> <span class="s">"securebank-sync"</span> `
+  <span class="f">-Action</span> <span class="v">$action</span> <span class="f">-Trigger</span> <span class="v">$trigger</span> <span class="f">-Description</span> <span class="s">"Pull latest from origin"</span></pre>
+<h3>Routine maintenance</h3>
+<table>
+  <thead><tr><th style="width:34%">Task</th><th>PowerShell</th></tr></thead>
+  <tbody>
+    <tr><td>Update the toolchain</td><td><code>winget upgrade --all</code></td></tr>
+    <tr><td>Refresh base/app images</td><td><code>docker compose pull; docker compose up -d</code></td></tr>
+    <tr><td>Prune unused Docker data</td><td><code>docker system prune -f</code></td></tr>
+    <tr><td>Dependency updates</td><td>Dependabot/Renovate PRs; review with <code>gh pr list</code></td></tr>
+    <tr><td>Health probe</td><td><code>Invoke-RestMethod http://localhost:8000/health</code></td></tr>
+    <tr><td>Scheduled scans</td><td><code>gh workflow run dast.yml</code> (or the local <code>scan.ps1</code>)</td></tr>
+  </tbody>
+</table>
+<h3>Health monitor (restart if unhealthy)</h3>
+<pre>try {
+  <span class="v">$r</span> = Invoke-RestMethod http://localhost:8000/health <span class="f">-TimeoutSec</span> 5
+  <span class="k">if</span> (<span class="v">$r</span>.status <span class="f">-ne</span> <span class="s">"ok"</span>) { <span class="k">throw</span> <span class="s">"unhealthy"</span> }
+} <span class="k">catch</span> {
+  docker compose restart api
+  Write-Output <span class="s">"$(Get-Date -Format o) restarted api"</span> | Add-Content .\logs\health.log
+}</pre>
+
+<h2 id="s11"><span class="n">11</span>Helper scripts</h2>
+<p>Keep operational scripts in <code>scripts\</code> in the repo so both machines share them. They give a
+consistent vocabulary (the PowerShell equivalent of the Makefile).</p>
+<table>
+  <thead><tr><th style="width:24%">Script</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td><code>setup.ps1</code></td><td>Install toolchain (winget), configure git/gh, create <code>.env</code>.</td></tr>
+    <tr><td><code>sync.ps1</code></td><td>Safe fetch → stash → pull --rebase → stash pop.</td></tr>
+    <tr><td><code>up.ps1</code> / <code>down.ps1</code></td><td>Start / stop the compose stack.</td></tr>
+    <tr><td><code>deploy.ps1</code></td><td>Build, tag by SHA, push to GHCR, trigger/await the release.</td></tr>
+    <tr><td><code>scan.ps1</code></td><td>Run local scanners into <code>reports\</code>.</td></tr>
+  </tbody>
+</table>
+<pre><span class="c"># scripts\sync.ps1 — safe synchronization</span>
+<span class="v">$ErrorActionPreference</span> = <span class="s">"Stop"</span>
+Set-Location <span class="v">$PSScriptRoot</span>\..
+<span class="v">$dirty</span> = (git status <span class="f">--porcelain</span>)
+<span class="k">if</span> (<span class="v">$dirty</span>) { git stash push <span class="f">-u</span> <span class="f">-m</span> <span class="s">"sync-autostash"</span> }
+git fetch origin
+git pull <span class="f">--rebase</span> origin (git rev-parse <span class="f">--abbrev-ref</span> HEAD)
+<span class="k">if</span> (<span class="v">$dirty</span>) { git stash pop }
+Write-Output <span class="s">"Synced $(git rev-parse --short HEAD)"</span></pre>
+<div class="note"><span class="lab">Note</span>Run scripts with <code>pwsh -NoProfile -File .\scripts\sync.ps1</code>. Keep them idempotent and safe to re-run; have them <code>exit 1</code> on failure so Task Scheduler and CI detect errors.</div>
+
+<h2 id="s12"><span class="n">12</span>Troubleshooting</h2>
+<table>
+  <thead><tr><th style="width:34%">Symptom</th><th>Cause / resolution</th></tr></thead>
+  <tbody>
+    <tr><td><code>running scripts is disabled</code></td><td>Execution policy. <code>Set-ExecutionPolicy -Scope CurrentUser RemoteSigned</code>.</td></tr>
+    <tr><td>Git shows all files modified</td><td>Line endings. Set <code>core.autocrlf input</code> and add <code>.gitattributes</code> (<code>* text=auto eol=lf</code>).</td></tr>
+    <tr><td><code>docker: error during connect</code></td><td>Engine not running. Start Docker Desktop / <code>podman machine start</code>.</td></tr>
+    <tr><td>Port 8000 already in use</td><td><code>Get-NetTCPConnection -LocalPort 8000</code> → stop the owning process, or change the mapped port.</td></tr>
+    <tr><td><code>gh: not authenticated</code></td><td><code>gh auth login</code> / <code>gh auth status</code>.</td></tr>
+    <tr><td>Long-path errors on checkout</td><td><code>git config --global core.longpaths true</code>.</td></tr>
+    <tr><td>Rebase conflict during pull</td><td>Resolve files, <code>git add</code>, <code>git rebase --continue</code>; or <code>git rebase --abort</code>.</td></tr>
+    <tr><td>Scheduled task did not run</td><td>Use absolute paths and <code>-NoProfile</code>; run <code>pwsh</code> not <code>powershell</code> if v7 required; check Task Scheduler history.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="s13"><span class="n">13</span>Command reference</h2>
+<div class="cols">
+  <div>
+    <h3>Setup &amp; config</h3>
+    <ul style="font-size:9pt;">
+      <li><code>winget install --id Git.Git -e</code></li>
+      <li><code>winget install --id GitHub.cli -e</code></li>
+      <li><code>gh auth login</code></li>
+      <li><code>git config --global user.name/email</code></li>
+      <li><code>Set-ExecutionPolicy -Scope CurrentUser RemoteSigned</code></li>
+    </ul>
+    <h3>Run</h3>
+    <ul style="font-size:9pt;">
+      <li><code>gh repo clone USER/securebank</code></li>
+      <li><code>Copy-Item .env.example .env</code></li>
+      <li><code>docker compose up -d --build</code></li>
+      <li><code>Invoke-RestMethod http://localhost:8000/health</code></li>
+    </ul>
+    <h3>Sync</h3>
+    <ul style="font-size:9pt;">
+      <li><code>git pull --rebase</code> / <code>git push</code></li>
+      <li><code>git stash</code> / <code>git stash pop</code></li>
+      <li><code>.\scripts\sync.ps1</code></li>
+    </ul>
+  </div>
+  <div>
+    <h3>Remote &amp; pipeline</h3>
+    <ul style="font-size:9pt;">
+      <li><code>gh pr create --fill</code> / <code>gh pr merge</code></li>
+      <li><code>gh run watch</code> / <code>gh run view --log-failed</code></li>
+      <li><code>gh workflow run release.yml</code></li>
+      <li><code>gh secret set NAME --env production</code></li>
+      <li><code>gh release create vX --generate-notes</code></li>
+    </ul>
+    <h3>Deploy &amp; maintain</h3>
+    <ul style="font-size:9pt;">
+      <li><code>docker build/push ghcr.io/...:&lt;sha&gt;</code></li>
+      <li><code>Invoke-Command -Session $s { ... }</code></li>
+      <li><code>winget upgrade --all</code></li>
+      <li><code>docker compose pull; up -d</code></li>
+      <li><code>Register-ScheduledTask ...</code></li>
+    </ul>
+  </div>
+</div>
+
+<h3>References</h3>
+<ul class="ref">
+  <li>Windows Package Manager (winget) documentation</li>
+  <li>PowerShell documentation; Microsoft.PowerShell.SecretManagement</li>
+  <li>Git documentation; GitHub CLI (<code>gh</code>) manual</li>
+  <li>Docker Desktop / Podman on Windows documentation</li>
+  <li>PowerShell Remoting over SSH; Task Scheduler cmdlets</li>
+  <li>Companion docs: <code>GitHub-Project-Delivery.html</code>, <code>CICD-Security.html</code>, <code>Secret-Scanning.html</code>; project at <code>appsec\project\</code></li>
+</ul>
+
+<footer>Project Operations on Windows 11 with PowerShell &mdash; operations runbook. Commands target PowerShell 7 on Windows 11; most also run under Windows PowerShell 5.1. Product names are cited for identification only.</footer>
+
+</div>
+</body>
+</html>
