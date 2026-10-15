@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OWASP in Practice</title>
+<style>
+  :root{
+    --ink:#15181d; --ink2:#3d434d; --muted:#6b7280;
+    --line:#e4e7eb; --rule:#cfd4da; --surface:#ffffff; --plane:#f6f7f9;
+    --accent:#1f4e79; --accent2:#2d6ca8;
+    --note:#1f4e79; --caution:#9a6a00; --warn-bg:#fbf4e6;
+    --code-bg:#1b1f26; --code-ink:#e6e9ee; --ok:#1a7f37; --bad:#c0392b;
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-print-color-adjust:exact; print-color-adjust:exact;}
+  body{margin:0; color:var(--ink); background:var(--plane); font-family:"Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif; font-size:10.4pt; line-height:1.52;}
+  .doc{max-width:200mm; margin:0 auto; background:var(--surface); padding:0 18mm 16mm; box-shadow:0 1px 16px rgba(0,0,0,.06);}
+  @media screen{ body{padding:8mm 0;} }
+  @page{ size:A4; margin:18mm 16mm; }
+  @media print{ .doc{max-width:none; margin:0; padding:0; box-shadow:none;} }
+  h1,h2,h3{font-weight:600; color:var(--ink); line-height:1.25;}
+  h2{font-size:14.5pt; margin:9mm 0 2.5mm; padding-top:2mm; color:var(--accent); border-top:2px solid var(--accent);}
+  h2 .n{color:var(--accent2); font-weight:700; margin-right:2mm;}
+  h3{font-size:11.2pt; margin:5mm 0 1.5mm; color:var(--ink);}
+  p{margin:0 0 2.6mm;} a{color:var(--accent2); text-decoration:none;}
+  ul,ol{margin:0 0 2.8mm; padding-left:5.5mm;} li{margin:0 0 1.1mm;}
+  strong{font-weight:600;} code{font-family:"Cascadia Code",Consolas,monospace; font-size:9pt; background:#eef1f4; padding:.2mm 1.2mm; border-radius:2px;}
+  .lede{font-size:10.6pt; color:var(--ink2);}
+  header.title{border-bottom:3px solid var(--accent); padding:14mm 0 6mm; margin-bottom:2mm;}
+  header.title .cat{font-size:8.5pt; letter-spacing:.18em; text-transform:uppercase; color:var(--accent2); font-weight:700;}
+  header.title h1{font-size:25pt; margin:3mm 0 2mm; letter-spacing:-.3pt; color:var(--ink);}
+  header.title .scope{font-size:11pt; color:var(--ink2); max-width:158mm;}
+  header.title .meta{margin-top:5mm; font-size:8.6pt; color:var(--muted); display:flex; gap:7mm; flex-wrap:wrap;}
+  header.title .meta b{color:var(--ink2); font-weight:600;}
+  .toc{background:var(--plane); border:1px solid var(--line); border-radius:4px; padding:4mm 6mm; margin:5mm 0 2mm; columns:2; column-gap:10mm; font-size:9.3pt;}
+  .toc a{display:block; color:var(--ink2); padding:.8mm 0; break-inside:avoid;}
+  .toc a .n{color:var(--accent2); font-weight:600; display:inline-block; width:6mm;}
+  table{width:100%; border-collapse:collapse; font-size:9.1pt; margin:2.5mm 0 4mm;}
+  caption{caption-side:top; text-align:left; font-size:8.6pt; color:var(--muted); margin-bottom:1.5mm; font-style:italic;}
+  th,td{text-align:left; padding:2.1mm 2.6mm; border:1px solid var(--line); vertical-align:top;}
+  thead th{background:var(--accent); color:#fff; font-weight:600; font-size:8.5pt; letter-spacing:.02em; border-color:var(--accent);}
+  tbody tr:nth-child(even){background:var(--plane);}
+  td code, th code{background:#eef1f4;}
+  pre{background:var(--code-bg); color:var(--code-ink); border-radius:4px; padding:4mm 5mm; font-family:"Cascadia Code",Consolas,monospace; font-size:8.5pt; line-height:1.5; margin:2.5mm 0; white-space:pre-wrap; word-break:break-word;}
+  pre .c{color:#8b94a3;} pre .k{color:#7cc5ff;} pre .s{color:#9ee493;} pre .f{color:#f0c674;} pre .v{color:#e3a7cf;} pre .bad{color:#ff8f8f;} pre .ok{color:#8ce39a;}
+  .note{border-left:3px solid var(--note); background:#eef3f9; padding:3mm 4mm; margin:3mm 0; font-size:9.6pt; border-radius:0 3px 3px 0;}
+  .note.caution{border-color:var(--caution); background:var(--warn-bg);}
+  .note .lab{font-weight:700; color:var(--note); text-transform:uppercase; font-size:8pt; letter-spacing:.06em; margin-right:1.5mm;}
+  .note.caution .lab{color:var(--caution);}
+  .cols{display:grid; grid-template-columns:1fr 1fr; gap:6mm;}
+  .tag{display:inline-block; font-size:7.6pt; font-weight:700; padding:.5mm 1.8mm; border-radius:2px; color:#fff; vertical-align:middle;}
+  .ref{font-size:9pt;} .ref li{margin-bottom:1.6mm;}
+  footer{margin-top:9mm; padding-top:3mm; border-top:1px solid var(--line); font-size:8.2pt; color:var(--muted);}
+  h2{break-after:avoid;} table,pre,.note{break-inside:avoid;}
+</style>
+</head>
+<body>
+<div class="doc">
+
+<header class="title">
+  <div class="cat">Application Security &middot; Practice Reference</div>
+  <h1>OWASP in Practice</h1>
+  <div class="scope">How to apply the OWASP project ecosystem to real work: the Top 10 and API Top 10 as risk baselines, ASVS as verifiable requirements, the Proactive Controls and Cheat Sheets as build-time guidance, WSTG and ZAP for testing, SAMM for program maturity, and deliberately vulnerable apps for hands-on practice &mdash; mapped across the SDLC.</div>
+  <div class="meta"><span><b>OWASP</b> Open Worldwide Application Security Project (nonprofit)</span><span><b>Nature</b> Free, open, community-driven</span><span><b>Flagship</b> Top 10, ASVS, WSTG, SAMM, ZAP</span></div>
+</header>
+
+<nav class="toc">
+  <a href="#s1"><span class="n">1</span>What OWASP is &amp; how to use it</a>
+  <a href="#s2"><span class="n">2</span>OWASP Top 10 (web) applied</a>
+  <a href="#s3"><span class="n">3</span>API Security Top 10</a>
+  <a href="#s4"><span class="n">4</span>ASVS &mdash; verifiable requirements</a>
+  <a href="#s5"><span class="n">5</span>Proactive Controls (build-time)</a>
+  <a href="#s6"><span class="n">6</span>Testing: WSTG &amp; ZAP</a>
+  <a href="#s7"><span class="n">7</span>Build-time projects &amp; Cheat Sheets</a>
+  <a href="#s8"><span class="n">8</span>Practice environments</a>
+  <a href="#s9"><span class="n">9</span>SAMM &mdash; program maturity</a>
+  <a href="#s10"><span class="n">10</span>Applying OWASP across the SDLC</a>
+  <a href="#s11"><span class="n">11</span>Hands-on walkthrough</a>
+  <a href="#s12"><span class="n">12</span>Best-practice checklist</a>
+  <a href="#s13"><span class="n">13</span>Terminology &amp; references</a>
+</nav>
+
+<h2 id="s1"><span class="n">1</span>What OWASP is &amp; how to use it</h2>
+<p>OWASP (Open Worldwide Application Security Project) is a nonprofit foundation that publishes
+free, community-maintained application-security resources: awareness documents, standards,
+testing guides, maturity models, cheat sheets, and open-source tools. It is the de-facto common
+vocabulary for application security. Nothing requires payment or membership to use.</p>
+<p>The practical skill is matching the right project to the task. The most important distinction:</p>
+<table>
+  <thead><tr><th style="width:26%">Resource type</th><th style="width:30%">Use it as</th><th>Do <em>not</em> use it as</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Top 10</strong> (web, API)</td><td>An awareness baseline and risk-prioritization starting point.</td><td>A complete checklist, a compliance standard, or a test plan.</td></tr>
+    <tr><td><strong>ASVS</strong></td><td>Verifiable security requirements and a test basis (what to build/verify).</td><td>An awareness poster.</td></tr>
+    <tr><td><strong>WSTG</strong></td><td>A testing methodology (how to test each requirement).</td><td>A list of risks.</td></tr>
+    <tr><td><strong>Proactive Controls / Cheat Sheets</strong></td><td>Developer guidance (how to build it correctly).</td><td>An audit standard.</td></tr>
+    <tr><td><strong>SAMM</strong></td><td>A model to assess and improve the security <em>program</em>.</td><td>A per-application control list.</td></tr>
+  </tbody>
+</table>
+<div class="note"><span class="lab">Note</span>The Top 10 is an <em>awareness</em> document, not a standard. "We cover the OWASP Top 10" is a weak claim on its own; "we verify against ASVS Level&nbsp;2, test per WSTG, and track maturity with SAMM" is a program. Use the Top 10 to start the conversation, ASVS to make it verifiable.</div>
+
+<h2 id="s2"><span class="n">2</span>OWASP Top 10 (web) applied</h2>
+<p>The Top 10 is OWASP's flagship awareness document: the ten most critical web application risk
+categories, revised periodically from industry data. The current released edition is <strong>2021</strong>
+(editions are updated every few years &mdash; verify the latest at owasp.org). Each category below is
+given with its practical meaning, a concrete example, and the control that prevents it.</p>
+<table>
+  <caption>OWASP Top 10:2021 &mdash; applied</caption>
+  <thead><tr><th style="width:21%">Category</th><th style="width:40%">Meaning &amp; concrete example</th><th>Primary prevention</th></tr></thead>
+  <tbody>
+    <tr><td><strong>A01 Broken Access Control</strong></td><td>Users act outside intended permissions: IDOR (read another user's record by changing an id), missing function-level checks, forced browsing to admin routes.</td><td>Deny by default; enforce object- and function-level authorization server-side on every request.</td></tr>
+    <tr><td><strong>A02 Cryptographic Failures</strong></td><td>Sensitive data exposed through weak or absent crypto: plaintext passwords, weak hashing, no TLS, hardcoded keys.</td><td>Encrypt in transit (TLS) and at rest; hash passwords (argon2/bcrypt); manage keys; classify data.</td></tr>
+    <tr><td><strong>A03 Injection</strong></td><td>Untrusted input interpreted as code/command: SQL, OS command, LDAP; also XSS (untrusted data in output).</td><td>Parameterized queries; context-aware output encoding; input validation; safe APIs.</td></tr>
+    <tr><td><strong>A04 Insecure Design</strong></td><td>Missing or flawed security design &mdash; absent controls, not implementation bugs (e.g. no rate limiting, no authorization model).</td><td>Threat modeling; security requirements; secure design patterns (see Threat-Modeling reference).</td></tr>
+    <tr><td><strong>A05 Security Misconfiguration</strong></td><td>Insecure defaults, verbose errors, open cloud storage, unnecessary features, missing hardening.</td><td>Hardened, repeatable configuration; minimal surface; config scanning (IaC).</td></tr>
+    <tr><td><strong>A06 Vulnerable &amp; Outdated Components</strong></td><td>Using libraries/frameworks with known vulnerabilities (e.g. Log4Shell via a transitive dependency).</td><td>Inventory + SCA; patch; SBOM; remove unused dependencies (see SCA reference).</td></tr>
+    <tr><td><strong>A07 Identification &amp; Authentication Failures</strong></td><td>Weak authentication: credential stuffing, weak passwords, broken session handling, missing MFA.</td><td>Strong auth + MFA; secure session management; rate limiting; vetted identity frameworks.</td></tr>
+    <tr><td><strong>A08 Software &amp; Data Integrity Failures</strong></td><td>Trusting unverified code/data: insecure deserialization, unsigned updates, compromised CI/CD pipeline.</td><td>Verify integrity (signatures); secure the pipeline; SLSA/provenance (see CI/CD reference).</td></tr>
+    <tr><td><strong>A09 Security Logging &amp; Monitoring Failures</strong></td><td>Attacks undetected: no logging of security events, no alerting, logs that cannot reconstruct an incident.</td><td>Log security-relevant events; monitor and alert; protect and retain logs.</td></tr>
+    <tr><td><strong>A10 Server-Side Request Forgery (SSRF)</strong></td><td>The server is coerced into making requests to unintended destinations (internal services, cloud metadata).</td><td>Validate/allow-list outbound targets; block internal ranges; segment networks.</td></tr>
+  </tbody>
+</table>
+<div class="note"><span class="lab">In practice</span>Use the Top 10 three ways: (1) <strong>training</strong> &mdash; a shared baseline for developers; (2) <strong>triage</strong> &mdash; map scanner findings to a category to prioritize; (3) <strong>coverage check</strong> &mdash; confirm each category has a control and a test. For depth, each category links to CWEs and to a Cheat Sheet (Section 7).</div>
+
+<h2 id="s3"><span class="n">3</span>API Security Top 10 (2023)</h2>
+<p>APIs have a distinct risk profile; the web Top 10 does not cover it fully. Use the API Security
+Top 10 for any service exposing an API.</p>
+<table>
+  <thead><tr><th style="width:8%">ID</th><th style="width:38%">Risk</th><th>Practical focus</th></tr></thead>
+  <tbody>
+    <tr><td>API1</td><td>Broken Object Level Authorization (BOLA)</td><td>The API equivalent of IDOR &mdash; verify the caller owns each object.</td></tr>
+    <tr><td>API2</td><td>Broken Authentication</td><td>Token/credential handling, weak JWT validation.</td></tr>
+    <tr><td>API3</td><td>Broken Object Property Level Authorization</td><td>Mass assignment / excessive data exposure at field level.</td></tr>
+    <tr><td>API4</td><td>Unrestricted Resource Consumption</td><td>Missing rate limits, pagination, payload limits.</td></tr>
+    <tr><td>API5</td><td>Broken Function Level Authorization</td><td>Privileged endpoints reachable by normal users.</td></tr>
+    <tr><td>API6</td><td>Unrestricted Access to Sensitive Business Flows</td><td>Automated abuse of legitimate flows (e.g. purchase bots).</td></tr>
+    <tr><td>API7</td><td>Server-Side Request Forgery</td><td>Tainted URL fetched server-side.</td></tr>
+    <tr><td>API8</td><td>Security Misconfiguration</td><td>Headers, CORS, verbose errors, defaults.</td></tr>
+    <tr><td>API9</td><td>Improper Inventory Management</td><td>Undocumented/old API versions ("shadow" and "zombie" APIs).</td></tr>
+    <tr><td>API10</td><td>Unsafe Consumption of APIs</td><td>Over-trusting third-party APIs you call.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="s4"><span class="n">4</span>ASVS &mdash; verifiable requirements</h2>
+<p>The <strong>Application Security Verification Standard</strong> turns "be secure" into a numbered list of
+testable requirements. It is how you make security concrete: pick a level, adopt its requirements
+as acceptance criteria, and verify each. This is the project to standardize on.</p>
+<table>
+  <thead><tr><th style="width:14%">Level</th><th style="width:30%">For</th><th>Intent</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Level 1</strong></td><td>All applications; minimum</td><td>Basic controls, verifiable by black-box testing.</td></tr>
+    <tr><td><strong>Level 2</strong></td><td>Most applications (default target)</td><td>Defense in depth; appropriate for applications handling sensitive data.</td></tr>
+    <tr><td><strong>Level 3</strong></td><td>High-value / high-assurance</td><td>Advanced verification for critical systems.</td></tr>
+  </tbody>
+</table>
+<p>ASVS requirements are grouped by domain &mdash; architecture, authentication, session management,
+access control, validation/encoding, cryptography, error handling &amp; logging, data protection,
+communications, business logic, files/resources, and API/web services. Each requirement is a
+single, verifiable statement.</p>
+<h3>How to use ASVS</h3>
+<ol>
+  <li><strong>Select a level</strong> (L2 for most products) and scope it to the application.</li>
+  <li><strong>Adopt requirements as acceptance criteria</strong> &mdash; import the relevant requirements into the backlog as security requirements.</li>
+  <li><strong>Map verification</strong> &mdash; each requirement is checked by a control + a test (SAST/DAST/manual per WSTG).</li>
+  <li><strong>Track coverage</strong> &mdash; report which requirements pass; gaps become work items.</li>
+</ol>
+<div class="note"><span class="lab">Note</span>ASVS is versioned (4.0.x, with a 5.0 revision released in 2025 that reorganizes the requirements). Pin to a specific version in your program so requirements are stable and auditable, and review on major releases.</div>
+
+<h2 id="s5"><span class="n">5</span>Proactive Controls (build-time)</h2>
+<p>Where the Top 10 lists risks, the <strong>OWASP Top 10 Proactive Controls</strong> lists the defensive
+techniques developers should apply &mdash; the "do this" counterpart. Use it as a developer checklist
+during design and implementation.</p>
+<table>
+  <thead><tr><th style="width:8%">ID</th><th style="width:40%">Control</th><th>Applies to (Top 10)</th></tr></thead>
+  <tbody>
+    <tr><td>C1</td><td>Define security requirements (use ASVS)</td><td>A04</td></tr>
+    <tr><td>C2</td><td>Leverage security frameworks &amp; libraries</td><td>A06, all</td></tr>
+    <tr><td>C3</td><td>Secure database access (parameterization)</td><td>A03</td></tr>
+    <tr><td>C4</td><td>Encode and escape data (context-aware output)</td><td>A03 (XSS)</td></tr>
+    <tr><td>C5</td><td>Validate all inputs</td><td>A03</td></tr>
+    <tr><td>C6</td><td>Implement digital identity (authn, MFA, sessions)</td><td>A07</td></tr>
+    <tr><td>C7</td><td>Enforce access controls (deny by default)</td><td>A01</td></tr>
+    <tr><td>C8</td><td>Protect data everywhere (crypto, TLS)</td><td>A02</td></tr>
+    <tr><td>C9</td><td>Implement security logging &amp; monitoring</td><td>A09</td></tr>
+    <tr><td>C10</td><td>Handle all errors &amp; exceptions</td><td>A05, A09</td></tr>
+  </tbody>
+</table>
+<p class="lede" style="font-size:9.5pt;">The Proactive Controls are periodically refreshed; the ten defensive themes above are stable. Pair each with the matching <strong>Cheat Sheet</strong> for language-specific how-to.</p>
+
+<h2 id="s6"><span class="n">6</span>Testing: WSTG &amp; ZAP</h2>
+<h3>Web Security Testing Guide (WSTG)</h3>
+<p>The WSTG is OWASP's testing <em>methodology</em>: a structured catalogue of test cases (each with an
+ID, e.g. <code>WSTG-ATHZ-02</code>) across information gathering, configuration, identity, authentication,
+authorization, session management, input validation, error handling, cryptography, business logic,
+client-side, and API testing. Use it to build a repeatable test plan and to ensure each ASVS
+requirement has a concrete verification procedure.</p>
+<h3>OWASP ZAP (Zed Attack Proxy)</h3>
+<p>ZAP is OWASP's flagship DAST tool: an intercepting proxy and automated scanner. In practice:</p>
+<pre><span class="c"># Automated baseline scan (passive + safe active) against a running app</span>
+docker run <span class="f">-t</span> ghcr.io/zaproxy/zaproxy:stable \
+  zap-baseline.py <span class="f">-t</span> http://localhost:3000 <span class="f">-r</span> zap-report.html
+
+<span class="c"># Full active scan (authorized targets only)</span>
+docker run <span class="f">-t</span> ghcr.io/zaproxy/zaproxy:stable \
+  zap-full-scan.py <span class="f">-t</span> http://localhost:3000
+
+<span class="c"># API scan from an OpenAPI definition</span>
+docker run <span class="f">-t</span> ghcr.io/zaproxy/zaproxy:stable \
+  zap-api-scan.py <span class="f">-t</span> https://api.example.com/openapi.json <span class="f">-f</span> openapi</pre>
+<p>ZAP integrates into CI (see the CI/CD and DAST references). Its findings map to Top 10 categories,
+giving a direct line from automated testing back to the risk baseline.</p>
+
+<h2 id="s7"><span class="n">7</span>Build-time projects &amp; Cheat Sheets</h2>
+<table>
+  <thead><tr><th style="width:28%">Project</th><th>Use</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Cheat Sheet Series</strong></td><td>Concise, practical, topic-specific how-to (e.g. Authentication, SQL Injection Prevention, Password Storage, JWT, Secrets Management). The first place to look when implementing a control.</td></tr>
+    <tr><td><strong>Dependency-Check</strong></td><td>SCA: detects known-vulnerable dependencies (CVEs). CLI and CI integration.</td></tr>
+    <tr><td><strong>Dependency-Track</strong></td><td>Continuous SBOM-based component analysis and monitoring (consumes CycloneDX).</td></tr>
+    <tr><td><strong>Threat Dragon</strong></td><td>Open-source threat-modeling tool (DFDs, STRIDE) &mdash; see the Threat-Modeling reference.</td></tr>
+    <tr><td><strong>CycloneDX</strong></td><td>SBOM standard (an OWASP project) for component inventory.</td></tr>
+    <tr><td><strong>Core Rule Set (CRS)</strong></td><td>Generic WAF rules (ModSecurity/Coraza) &mdash; a runtime defense-in-depth layer, not a substitute for fixing code.</td></tr>
+    <tr><td><strong>Amass</strong></td><td>Attack-surface / asset discovery for reconnaissance and inventory.</td></tr>
+  </tbody>
+</table>
+
+<h2 id="s8"><span class="n">8</span>Practice environments</h2>
+<p>OWASP maintains deliberately vulnerable applications for safe, hands-on learning. Run them
+locally only.</p>
+<table>
+  <thead><tr><th style="width:24%">Project</th><th style="width:34%">Run</th><th>Focus</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Juice Shop</strong></td><td><code>docker run -d -p 3000:3000 bkimminich/juice-shop</code></td><td>Modern JS app; broad Top 10 coverage; gamified challenges.</td></tr>
+    <tr><td><strong>WebGoat</strong></td><td><code>docker run -d -p 8080:8080 -p 9090:9090 webgoat/webgoat</code></td><td>Guided lessons per vulnerability class.</td></tr>
+    <tr><td><strong>crAPI</strong></td><td>Compose stack (see project repo)</td><td>API-specific risks (API Top 10).</td></tr>
+  </tbody>
+</table>
+<div class="note caution"><span class="lab">Caution</span>These applications are intentionally exploitable. Run them on an isolated local host, never on a public or shared network. The same rule applies to the SecureBank practice project (<code>appsec/project/</code>).</div>
+
+<h2 id="s9"><span class="n">9</span>SAMM &mdash; program maturity</h2>
+<p>The <strong>Software Assurance Maturity Model</strong> assesses and improves the security <em>program</em> (not a
+single app). It defines five business functions, each with security practices measured at maturity
+levels 1&ndash;3. Use it to baseline where you are and plan where to invest.</p>
+<table>
+  <thead><tr><th style="width:22%">Business function</th><th>Security practices</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Governance</strong></td><td>Strategy &amp; Metrics; Policy &amp; Compliance; Education &amp; Guidance</td></tr>
+    <tr><td><strong>Design</strong></td><td>Threat Assessment; Security Requirements; Security Architecture</td></tr>
+    <tr><td><strong>Implementation</strong></td><td>Secure Build; Secure Deployment; Defect Management</td></tr>
+    <tr><td><strong>Verification</strong></td><td>Architecture Assessment; Requirements-driven Testing; Security Testing</td></tr>
+    <tr><td><strong>Operations</strong></td><td>Incident Management; Environment Management; Operational Management</td></tr>
+  </tbody>
+</table>
+<p>In practice: run a SAMM self-assessment (the project provides a toolbox/spreadsheet), score each
+practice, set target levels, and drive a roadmap. It connects the per-app work (Top 10, ASVS) to an
+organization-level plan.</p>
+
+<h2 id="s10"><span class="n">10</span>Applying OWASP across the SDLC</h2>
+<p>The projects are complementary; each SDLC phase has a primary OWASP resource. This mapping is the
+practical heart of "using OWASP".</p>
+<table>
+  <thead><tr><th style="width:18%">Phase</th><th style="width:34%">OWASP resource</th><th>Activity</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Govern</strong></td><td>SAMM</td><td>Assess maturity; set program targets and roadmap.</td></tr>
+    <tr><td><strong>Requirements</strong></td><td>ASVS, Proactive Controls (C1)</td><td>Adopt ASVS Level&nbsp;2 requirements as acceptance criteria.</td></tr>
+    <tr><td><strong>Design</strong></td><td>Threat Dragon, Top 10 (A04)</td><td>Threat-model; design controls for the risks that apply.</td></tr>
+    <tr><td><strong>Build</strong></td><td>Cheat Sheets, Proactive Controls, Dependency-Check</td><td>Implement controls correctly; scan dependencies.</td></tr>
+    <tr><td><strong>Test</strong></td><td>WSTG, ZAP, ASVS verification</td><td>Verify each requirement; run DAST; map findings to the Top 10.</td></tr>
+    <tr><td><strong>Release</strong></td><td>CycloneDX, Dependency-Track</td><td>SBOM; continuous component monitoring.</td></tr>
+    <tr><td><strong>Operate</strong></td><td>Core Rule Set (WAF), logging (A09)</td><td>Runtime defense; detection and monitoring.</td></tr>
+  </tbody>
+</table>
+<p>This maps directly onto the companion references: SAST, DAST, SCA, Secret-Scanning, CI/CD-Security
+and Threat-Modeling are the techniques; OWASP provides the risk baseline (Top 10), the requirements
+(ASVS), the test methodology (WSTG), the tooling (ZAP, Dependency-Check), and the program model
+(SAMM).</p>
+
+<h2 id="s11"><span class="n">11</span>Hands-on walkthrough</h2>
+<p>A concrete path from zero to a verified finding, using only free OWASP resources.</p>
+<ol>
+  <li><strong>Stand up a target.</strong> <code>docker run -d -p 3000:3000 bkimminich/juice-shop</code>; open <code>http://localhost:3000</code>.</li>
+  <li><strong>Scan it.</strong> Run the ZAP baseline (Section 6) to <code>zap-report.html</code>.</li>
+  <li><strong>Triage against the Top 10.</strong> Map each ZAP alert to a category (e.g. a reflected parameter → A03 Injection/XSS; a missing header → A05).</li>
+  <li><strong>Pick one finding and confirm it manually</strong> using the matching WSTG test case &mdash; e.g. test access control (<code>WSTG-ATHZ</code>) by requesting another user's object (A01 / API1 BOLA).</li>
+  <li><strong>Write the requirement.</strong> State the fix as an ASVS requirement (e.g. "verify object-level authorization on every data access") and add it as acceptance criteria.</li>
+  <li><strong>Find the control.</strong> Open the relevant <strong>Cheat Sheet</strong> (e.g. Authorization, SQL Injection Prevention, XSS Prevention) for the implementation pattern.</li>
+  <li><strong>Remediate &amp; retest.</strong> Apply the fix in your own code; re-run ZAP and the WSTG test; confirm the finding is gone.</li>
+  <li><strong>Record maturity.</strong> Note the activity against SAMM Verification &mdash; Security Testing.</li>
+</ol>
+<p>Repeat on the SecureBank project (<code>appsec/project/</code>) to practice the same loop on an application
+whose vulnerabilities you introduced deliberately and can fix cleanly.</p>
+
+<h2 id="s12"><span class="n">12</span>Best-practice checklist</h2>
+<div class="cols">
+  <div>
+    <h3>Adopt</h3>
+    <ul style="font-size:9.4pt;">
+      <li>Use the Top 10 for awareness and triage, not as the whole program.</li>
+      <li>Standardize on <strong>ASVS</strong> (Level 2 default) for verifiable requirements.</li>
+      <li>Add the <strong>API Security Top 10</strong> for any API.</li>
+      <li>Use <strong>Proactive Controls + Cheat Sheets</strong> as the build-time how-to.</li>
+    </ul>
+    <h3>Test</h3>
+    <ul style="font-size:9.4pt;">
+      <li>Build a test plan from <strong>WSTG</strong>; automate with <strong>ZAP</strong> in CI.</li>
+      <li>Map every finding to a Top 10 category and an ASVS requirement.</li>
+    </ul>
+  </div>
+  <div>
+    <h3>Operate &amp; improve</h3>
+    <ul style="font-size:9.4pt;">
+      <li>Scan dependencies (<strong>Dependency-Check</strong>); monitor via <strong>Dependency-Track</strong> + CycloneDX SBOM.</li>
+      <li>Threat-model with <strong>Threat Dragon</strong>.</li>
+      <li>Consider <strong>CRS</strong> as runtime defense-in-depth (not a code-fix substitute).</li>
+      <li>Assess and plan the program with <strong>SAMM</strong>.</li>
+      <li>Practice continuously on <strong>Juice Shop</strong> / <strong>WebGoat</strong>.</li>
+    </ul>
+  </div>
+</div>
+
+<h2 id="s13"><span class="n">13</span>Terminology &amp; references</h2>
+<div class="cols">
+  <div>
+    <h3>Terminology</h3>
+    <ul style="font-size:9.3pt;">
+      <li><strong>Top 10</strong> &mdash; awareness list of top risk categories.</li>
+      <li><strong>ASVS</strong> &mdash; Application Security Verification Standard (requirements, L1&ndash;L3).</li>
+      <li><strong>WSTG</strong> &mdash; Web Security Testing Guide (methodology).</li>
+      <li><strong>MASVS / MASTG</strong> &mdash; the mobile equivalents.</li>
+      <li><strong>Proactive Controls</strong> &mdash; developer-facing defensive controls.</li>
+      <li><strong>Cheat Sheet Series</strong> &mdash; concise implementation how-to.</li>
+      <li><strong>SAMM</strong> &mdash; Software Assurance Maturity Model (program).</li>
+      <li><strong>ZAP</strong> &mdash; Zed Attack Proxy (DAST).</li>
+      <li><strong>CycloneDX</strong> &mdash; SBOM standard.</li>
+    </ul>
+  </div>
+  <div>
+    <h3>References (owasp.org projects)</h3>
+    <ul class="ref">
+      <li>OWASP Top 10 (web) and API Security Top 10</li>
+      <li>OWASP Application Security Verification Standard (ASVS)</li>
+      <li>OWASP Web Security Testing Guide (WSTG)</li>
+      <li>OWASP Top 10 Proactive Controls; Cheat Sheet Series</li>
+      <li>OWASP SAMM; OWASP ZAP; Dependency-Check / Dependency-Track; Threat Dragon; CycloneDX; Core Rule Set</li>
+      <li>OWASP Juice Shop; WebGoat; crAPI</li>
+      <li>Companion references: <code>SAST.html</code>, <code>DAST.html</code>, <code>SCA.html</code>, <code>Threat-Modeling.html</code>, <code>CICD-Security.html</code></li>
+    </ul>
+  </div>
+</div>
+
+<footer>OWASP in Practice &mdash; practice reference. OWASP project names are cited for identification; OWASP materials are published free by the OWASP Foundation. Editions evolve &mdash; verify the current version of each project at owasp.org.</footer>
+
+</div>
+</body>
+</html>
