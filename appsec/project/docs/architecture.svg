@@ -1,0 +1,215 @@
+﻿<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 822" font-family="Segoe UI, Arial, sans-serif">
+<defs>
+  <marker id="aflow" markerWidth="11" markerHeight="11" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#334155"/></marker>
+  <marker id="agreen" markerWidth="11" markerHeight="11" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#1a7f37"/></marker>
+  <marker id="aorange" markerWidth="11" markerHeight="11" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#c2410c"/></marker>
+  <marker id="afind" markerWidth="11" markerHeight="11" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#6d5bd0"/></marker>
+  <marker id="ared" markerWidth="11" markerHeight="11" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#c0392b"/></marker>
+  <style>
+    .zl{font-size:12px;font-weight:700;letter-spacing:.06em;fill:#475569;}
+    .ct{font-size:12.5px;font-weight:700;fill:#15181d;}
+    .cs{font-size:8.6px;fill:#64748b;}
+    .ic{font-size:16px;}
+    .al{font-size:9px;fill:#475569;}
+    .alf{font-size:9px;fill:#6d5bd0;font-weight:600;}
+    .num{font-size:11px;font-weight:700;fill:#ffffff;}
+    .netl{font-size:9px;font-weight:700;fill:#0e7a3a;letter-spacing:.04em;}
+  </style>
+</defs>
+
+<rect x="0" y="0" width="1600" height="822" fill="#f6f7f9"/>
+
+<!-- Title -->
+<text x="40" y="46" font-size="26" font-weight="700" fill="#15181d">SecureBank &#8212; End-to-End AppSec Pipeline</text>
+<text x="40" y="70" font-size="12.5" fill="#52514e">From code commit to running, continuously-tested application: security gates in the pipeline, segregated runtime, and centralized vulnerability management.</text>
+
+<!-- Legend -->
+<g transform="translate(1176,22)">
+  <rect x="0" y="0" width="398" height="60" rx="6" fill="#ffffff" stroke="#e4e7eb"/>
+  <line x1="14" y1="18" x2="44" y2="18" stroke="#334155" stroke-width="2" marker-end="url(#aflow)"/>
+  <text x="50" y="21" font-size="9.5" fill="#334155">build / deploy / runtime flow</text>
+  <line x1="210" y1="18" x2="240" y2="18" stroke="#6d5bd0" stroke-width="2" stroke-dasharray="5 3" marker-end="url(#afind)"/>
+  <text x="246" y="21" font-size="9.5" fill="#334155">findings / feedback</text>
+  <rect x="14" y="34" width="14" height="12" rx="2" fill="#fff" stroke="#c0392b" stroke-width="1.6"/>
+  <text x="34" y="44" font-size="9.5" fill="#334155">blocking security gate</text>
+  <circle cx="214" cy="40" r="8" fill="#1f4e79"/><text x="214" y="43.5" text-anchor="middle" class="num">n</text>
+  <text x="230" y="44" font-size="9.5" fill="#334155">numbered end-to-end step</text>
+</g>
+
+<!-- ============ ZONE 1: DESIGN & DEVELOP ============ -->
+<rect x="28" y="100" width="250" height="340" rx="10" fill="#efe9fb" stroke="#6d5bd0" stroke-width="1.3"/>
+<text x="44" y="122" class="zl">DESIGN &amp; DEVELOP</text>
+<!-- Developer -->
+<rect x="44" y="134" width="218" height="52" rx="8" fill="#fff" stroke="#6d5bd0" stroke-width="1.4"/>
+<text x="56" y="164" class="ic">&#128100;</text>
+<text x="80" y="156" class="ct">Developer</text><text x="80" y="172" class="cs">writes code, opens pull requests</text>
+<!-- Threat modeling -->
+<rect x="44" y="200" width="218" height="52" rx="8" fill="#fff" stroke="#6d5bd0" stroke-width="1.4"/>
+<text x="56" y="230" class="ic">&#129513;</text>
+<text x="80" y="222" class="ct">Threat Modeling</text><text x="80" y="238" class="cs">STRIDE / DFD &#8594; security requirements</text>
+<!-- Local dev -->
+<rect x="44" y="266" width="218" height="52" rx="8" fill="#fff" stroke="#6d5bd0" stroke-width="1.4"/>
+<text x="56" y="296" class="ic">&#128187;</text>
+<text x="80" y="288" class="ct">Local run</text><text x="80" y="304" class="cs">make up &#183; docker compose &#183; make scan</text>
+<!-- design feeds requirements note -->
+<text x="44" y="348" font-size="9" fill="#6d5bd0">design-time controls feed the pipeline &#8595;</text>
+
+<!-- ============ ZONE 2: SOURCE / GITHUB ============ -->
+<rect x="300" y="100" width="200" height="340" rx="10" fill="#eef1f4" stroke="#4b5563" stroke-width="1.3"/>
+<text x="316" y="122" class="zl">SOURCE &#183; GITHUB</text>
+<rect x="314" y="140" width="172" height="52" rx="8" fill="#fff" stroke="#4b5563" stroke-width="1.4"/>
+<text x="326" y="170" class="ic">&#128025;</text>
+<text x="350" y="162" class="ct">Repository</text><text x="350" y="178" class="cs">protected main branch</text>
+<rect x="314" y="208" width="172" height="56" rx="8" fill="#fff" stroke="#4b5563" stroke-width="1.4"/>
+<text x="326" y="240" class="ic">&#128256;</text>
+<text x="350" y="230" class="ct">Pull Request</text><text x="350" y="245" class="cs">review + required</text><text x="350" y="257" class="cs">status checks</text>
+<rect x="314" y="282" width="172" height="46" rx="8" fill="#fff" stroke="#4b5563" stroke-width="1.4"/>
+<text x="326" y="310" class="ic">&#128273;</text>
+<text x="350" y="302" class="ct">GitHub Secrets</text><text x="350" y="318" class="cs">+ Environments (prod)</text>
+
+<!-- ============ ZONE 3: CI/CD PIPELINE ============ -->
+<rect x="522" y="100" width="258" height="440" rx="10" fill="#e7f0fa" stroke="#2d6ca8" stroke-width="1.3"/>
+<text x="538" y="122" class="zl">CI/CD &#183; GITHUB ACTIONS</text>
+<!-- gates -->
+<rect x="536" y="134" width="230" height="44" rx="7" fill="#fff" stroke="#2d6ca8" stroke-width="1.4"/>
+<text x="548" y="161" class="ic">&#128273;</text>
+<text x="572" y="153" class="ct">Secret Scanning</text><text x="572" y="169" class="cs">Gitleaks &#8212; code + git history</text>
+<rect x="536" y="190" width="230" height="44" rx="7" fill="#fff" stroke="#2d6ca8" stroke-width="1.4"/>
+<text x="548" y="217" class="ic">&#128269;</text>
+<text x="572" y="209" class="ct">SAST</text><text x="572" y="225" class="cs">Semgrep / CodeQL &#8212; source analysis</text>
+<rect x="536" y="246" width="230" height="44" rx="7" fill="#fff" stroke="#2d6ca8" stroke-width="1.4"/>
+<text x="548" y="273" class="ic">&#128230;</text>
+<text x="572" y="265" class="ct">SCA</text><text x="572" y="281" class="cs">Trivy / pip-audit &#8212; dependencies</text>
+<rect x="536" y="302" width="230" height="44" rx="7" fill="#fff" stroke="#2d6ca8" stroke-width="1.4"/>
+<text x="548" y="329" class="ic">&#129521;</text>
+<text x="572" y="321" class="ct">IaC Scan</text><text x="572" y="337" class="cs">Checkov / Trivy &#8212; Dockerfile, compose</text>
+<!-- security gate -->
+<rect x="536" y="370" width="230" height="52" rx="7" fill="#fdecea" stroke="#c0392b" stroke-width="1.8"/>
+<text x="548" y="401" class="ic">&#128737;</text>
+<text x="572" y="393" class="ct">Security Gate</text><text x="572" y="409" class="cs">fail on critical &#8594; block merge / deploy</text>
+<!-- internal sequential arrows -->
+<line x1="651" y1="178" x2="651" y2="188" stroke="#2d6ca8" stroke-width="1.6" marker-end="url(#aflow)"/>
+<line x1="651" y1="234" x2="651" y2="244" stroke="#2d6ca8" stroke-width="1.6" marker-end="url(#aflow)"/>
+<line x1="651" y1="290" x2="651" y2="300" stroke="#2d6ca8" stroke-width="1.6" marker-end="url(#aflow)"/>
+<line x1="651" y1="346" x2="651" y2="368" stroke="#2d6ca8" stroke-width="1.6" marker-end="url(#aflow)"/>
+
+<!-- ============ ZONE 4: BUILD & PUBLISH ============ -->
+<rect x="802" y="100" width="252" height="440" rx="10" fill="#e2f4f2" stroke="#0e9488" stroke-width="1.3"/>
+<text x="818" y="122" class="zl">BUILD &amp; PUBLISH</text>
+<rect x="816" y="140" width="224" height="46" rx="7" fill="#fff" stroke="#0e9488" stroke-width="1.4"/>
+<text x="828" y="168" class="ic">&#127959;</text>
+<text x="852" y="160" class="ct">Build image</text><text x="852" y="176" class="cs">multi-stage Dockerfile, non-root</text>
+<rect x="816" y="200" width="224" height="46" rx="7" fill="#fff" stroke="#0e9488" stroke-width="1.4"/>
+<text x="828" y="228" class="ic">&#128270;</text>
+<text x="852" y="220" class="ct">Container Scan</text><text x="852" y="236" class="cs">Trivy &#8212; image CVEs &amp; misconfig</text>
+<rect x="816" y="260" width="224" height="46" rx="7" fill="#fff" stroke="#0e9488" stroke-width="1.4"/>
+<text x="828" y="288" class="ic">&#128196;</text>
+<text x="852" y="280" class="ct">SBOM</text><text x="852" y="296" class="cs">Syft &#8212; CycloneDX inventory</text>
+<rect x="816" y="330" width="224" height="52" rx="7" fill="#fff" stroke="#0e9488" stroke-width="1.8"/>
+<text x="828" y="361" class="ic">&#128451;</text>
+<text x="852" y="353" class="ct">GHCR Registry</text><text x="852" y="369" class="cs">SHA-tagged, signed image</text>
+<line x1="928" y1="186" x2="928" y2="198" stroke="#0e9488" stroke-width="1.6" marker-end="url(#agreen)"/>
+<line x1="928" y1="246" x2="928" y2="258" stroke="#0e9488" stroke-width="1.6" marker-end="url(#agreen)"/>
+<line x1="928" y1="306" x2="928" y2="328" stroke="#0e9488" stroke-width="1.6" marker-end="url(#agreen)"/>
+
+<!-- ============ ZONE 5: RUNTIME ============ -->
+<rect x="1076" y="100" width="498" height="440" rx="10" fill="#e8f5ec" stroke="#1a7f37" stroke-width="1.3"/>
+<text x="1092" y="122" class="zl">RUNTIME &#183; DOCKER COMPOSE</text>
+<!-- external user -->
+<rect x="1092" y="134" width="150" height="46" rx="8" fill="#fff" stroke="#334155" stroke-width="1.4"/>
+<text x="1104" y="162" class="ic">&#127760;</text>
+<text x="1128" y="154" class="ct">User / Client</text><text x="1128" y="170" class="cs">browser, API caller</text>
+<!-- DAST -->
+<rect x="1410" y="134" width="150" height="46" rx="8" fill="#fff7ed" stroke="#c2410c" stroke-width="1.6"/>
+<text x="1422" y="162" class="ic">&#127919;</text>
+<text x="1446" y="154" class="ct">DAST &#8212; ZAP</text><text x="1446" y="170" class="cs">attacks running app</text>
+<!-- compose inner -->
+<rect x="1092" y="196" width="468" height="326" rx="8" fill="#ffffff" stroke="#1a7f37" stroke-width="1.2"/>
+<!-- frontend network -->
+<rect x="1104" y="214" width="320" height="104" rx="7" fill="#f3fbf5" stroke="#1a7f37" stroke-width="1.1" stroke-dasharray="5 3"/>
+<text x="1116" y="230" class="netl">FRONTEND NETWORK</text>
+<rect x="1116" y="240" width="140" height="62" rx="7" fill="#fff" stroke="#1a7f37" stroke-width="1.4"/>
+<text x="1128" y="270" class="ic">&#128421;</text>
+<text x="1152" y="262" class="ct">Web (React)</text><text x="1152" y="278" class="cs">static client</text><text x="1152" y="290" class="cs">served to the user</text>
+<rect x="1272" y="240" width="140" height="62" rx="7" fill="#fff" stroke="#1a7f37" stroke-width="1.8"/>
+<text x="1284" y="270" class="ic">&#9881;</text>
+<text x="1308" y="262" class="ct">API (FastAPI)</text><text x="1308" y="278" class="cs">JWT auth, business</text><text x="1308" y="290" class="cs">logic &#8212; on both nets</text>
+<!-- backend network -->
+<rect x="1104" y="372" width="440" height="130" rx="7" fill="#eef7f1" stroke="#1a7f37" stroke-width="1.1" stroke-dasharray="5 3"/>
+<text x="1116" y="390" class="netl">BACKEND NETWORK &#183; internal (no external egress)</text>
+<rect x="1120" y="402" width="200" height="82" rx="7" fill="#fff" stroke="#1a7f37" stroke-width="1.4"/>
+<text x="1132" y="438" class="ic">&#128452;</text>
+<text x="1156" y="428" class="ct">PostgreSQL</text><text x="1156" y="444" class="cs">accounts, transactions,</text><text x="1156" y="456" class="cs">users, audit log</text>
+<rect x="1344" y="402" width="180" height="82" rx="7" fill="#fff" stroke="#1a7f37" stroke-width="1.4"/>
+<text x="1356" y="438" class="ic">&#9889;</text>
+<text x="1380" y="428" class="ct">Redis</text><text x="1380" y="444" class="cs">sessions,</text><text x="1380" y="456" class="cs">rate-limit counters</text>
+<!-- internal links API->DB / API->Redis -->
+<line x1="1330" y1="302" x2="1250" y2="400" stroke="#1a7f37" stroke-width="1.8" marker-end="url(#agreen)"/>
+<text x="1236" y="356" class="al">SQL :5432</text>
+<line x1="1360" y1="302" x2="1420" y2="400" stroke="#1a7f37" stroke-width="1.8" marker-end="url(#agreen)"/>
+<text x="1430" y="356" class="al">:6379</text>
+
+<!-- ============ BOTTOM BAND: VULN MANAGEMENT ============ -->
+<rect x="28" y="610" width="1546" height="196" rx="10" fill="#f3f0fb" stroke="#3a2d7d" stroke-width="1.3"/>
+<text x="44" y="634" class="zl" fill="#3a2d7d">VULNERABILITY MANAGEMENT &amp; RISK-BASED GATE</text>
+<rect x="60" y="652" width="330" height="88" rx="8" fill="#fff" stroke="#3a2d7d" stroke-width="1.4"/>
+<text x="74" y="684" class="ic">&#128203;</text>
+<text x="100" y="676" class="ct">Findings Inventory</text><text x="100" y="692" class="cs">normalize SARIF/JSON from every scanner</text><text x="100" y="706" class="cs">one record schema &#8594; findings.json</text><text x="100" y="724" class="cs">source &#183; CWE &#183; CVE &#183; severity &#183; owner &#183; status</text>
+<rect x="420" y="652" width="330" height="88" rx="8" fill="#fff" stroke="#3a2d7d" stroke-width="1.4"/>
+<text x="434" y="684" class="ic">&#127991;</text>
+<text x="460" y="676" class="ct">Enrichment &amp; prioritization</text><text x="460" y="692" class="cs">CVSS (severity) &#183; EPSS (likelihood)</text><text x="460" y="706" class="cs">CISA KEV &#183; reachability &#183; exposure</text><text x="460" y="724" class="cs">&#8594; effective risk per finding</text>
+<rect x="780" y="652" width="300" height="88" rx="8" fill="#fdecea" stroke="#c0392b" stroke-width="1.8"/>
+<text x="794" y="684" class="ic">&#128682;</text>
+<text x="820" y="676" class="ct">Risk-Based Gate &amp; SLA</text><text x="820" y="692" class="cs">block: CVSS&#8805;9 AND (internet-facing</text><text x="820" y="706" class="cs">OR reachable) AND (EPSS high OR KEV)</text><text x="820" y="724" class="cs">remediation SLA by severity</text>
+<rect x="1110" y="652" width="430" height="88" rx="8" fill="#fff" stroke="#3a2d7d" stroke-width="1.4"/>
+<text x="1124" y="684" class="ic">&#128202;</text>
+<text x="1150" y="676" class="ct">Metrics &amp; Dashboard</text><text x="1150" y="692" class="cs">open vs closed &#183; MTTR &#183; SLA compliance</text><text x="1150" y="706" class="cs">findings by CWE / app / source</text><text x="1150" y="724" class="cs">security-gate pass/fail trend</text>
+<line x1="390" y1="696" x2="418" y2="696" stroke="#3a2d7d" stroke-width="1.6" marker-end="url(#afind)"/>
+<line x1="750" y1="696" x2="778" y2="696" stroke="#3a2d7d" stroke-width="1.6" marker-end="url(#afind)"/>
+<line x1="1080" y1="696" x2="1108" y2="696" stroke="#3a2d7d" stroke-width="1.6" marker-end="url(#afind)"/>
+<text x="44" y="788" font-size="9" fill="#6d5bd0">All scanners (secrets, SAST, SCA, IaC, container, DAST) feed findings here; the gate consumes the enriched inventory; prioritized fixes loop back to the developer.</text>
+
+<!-- ================= NUMBERED FLOW ARROWS ================= -->
+<!-- 1 Dev -> Repo -->
+<line x1="262" y1="160" x2="312" y2="164" stroke="#334155" stroke-width="2" marker-end="url(#aflow)"/>
+<circle cx="288" cy="150" r="11" fill="#1f4e79"/><text x="288" y="154" text-anchor="middle" class="num">1</text>
+<text x="246" y="128" class="al">git push / open PR</text>
+<!-- 2 PR -> CI -->
+<line x1="486" y1="236" x2="534" y2="210" stroke="#334155" stroke-width="2" marker-end="url(#aflow)"/>
+<circle cx="510" cy="206" r="11" fill="#1f4e79"/><text x="510" y="210" text-anchor="middle" class="num">2</text>
+<text x="492" y="196" class="al">triggers workflow</text>
+<!-- 3 Gate -> Build -->
+<path d="M766 388 C 790 388, 790 163, 814 163" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#aflow)"/>
+<circle cx="790" cy="300" r="11" fill="#1f4e79"/><text x="790" y="304" text-anchor="middle" class="num">3</text>
+<text x="776" y="470" class="al">on pass: proceed to build</text>
+<!-- 4 (build chain -> GHCR already drawn); label push -->
+<circle cx="928" cy="318" r="11" fill="#1f4e79"/><text x="928" y="322" text-anchor="middle" class="num">4</text>
+<text x="946" y="322" class="al">push image (OCI)</text>
+<!-- 5 GHCR -> API (deploy/pull) -->
+<path d="M1040 356 C 1150 356, 1180 300, 1270 280" fill="none" stroke="#334155" stroke-width="2" marker-end="url(#aflow)"/>
+<circle cx="1120" cy="356" r="11" fill="#1f4e79"/><text x="1120" y="360" text-anchor="middle" class="num">5</text>
+<text x="1060" y="345" class="al">docker pull / deploy (SHA tag)</text>
+<!-- 6 User -> Web/API -->
+<line x1="1180" y1="180" x2="1200" y2="238" stroke="#334155" stroke-width="2" marker-end="url(#aflow)"/>
+<circle cx="1176" cy="210" r="11" fill="#1f4e79"/><text x="1176" y="214" text-anchor="middle" class="num">6</text>
+<text x="1092" y="200" class="al">HTTPS :8000</text>
+<!-- 7 label on SQL already; place number near API->DB -->
+<circle cx="1236" cy="372" r="11" fill="#1f4e79"/><text x="1236" y="376" text-anchor="middle" class="num">7</text>
+<!-- 8 DAST -> API -->
+<line x1="1446" y1="180" x2="1360" y2="238" stroke="#c2410c" stroke-width="2" marker-end="url(#aorange)"/>
+<circle cx="1412" cy="210" r="11" fill="#c2410c"/><text x="1412" y="214" text-anchor="middle" class="num">8</text>
+<text x="1388" y="200" class="al" fill="#c2410c">attack traffic</text>
+
+<!-- 9 findings dashed to inventory -->
+<path d="M651 422 C 600 540, 360 560, 230 650" fill="none" stroke="#6d5bd0" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#afind)"/>
+<path d="M928 382 C 820 520, 420 560, 300 650" fill="none" stroke="#6d5bd0" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#afind)"/>
+<path d="M1446 182 C 1470 560, 500 560, 360 650" fill="none" stroke="#6d5bd0" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#afind)"/>
+<circle cx="470" cy="582" r="11" fill="#6d5bd0"/><text x="470" y="586" text-anchor="middle" class="num">9</text>
+<text x="488" y="586" class="alf">findings (SARIF / JSON) from every scanner</text>
+
+<!-- 10 feedback band -> developer -->
+<path d="M60 696 C 24 696, 24 300, 44 300" fill="none" stroke="#6d5bd0" stroke-width="1.8" stroke-dasharray="6 3" marker-end="url(#afind)"/>
+<circle cx="24" cy="500" r="11" fill="#6d5bd0"/><text x="24" y="504" text-anchor="middle" class="num" font-size="10">10</text>
+<text x="20" y="470" class="alf" transform="rotate(-90 20 470)">prioritized fixes &amp; SLA back to developer</text>
+
+</svg>
